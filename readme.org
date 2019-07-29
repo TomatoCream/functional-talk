@@ -1,0 +1,102 @@
+#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js
+#+TITLE: Functional Programming: Real World Performance, Nix and Warp Server
+* Who am I? Introduction to myself
+  - Follow me on github!
+    [[https://github.com/TomatoCream]]
+  - Linux user for 5 years now
+    - Ubuntu
+    - Proxmox
+    - ArchLinux
+    - Centos (server management)
+** My interests
+   - AI, ML
+   - Functional programming and abstraction (what the hell is so good about this?)
+   - Philosophy
+     - occam's razor
+       <peekture>
+** For whom is this talk for?
+   - Linux users! Sorry windows users
+     - But not really (departs away from a unix way of doing things)
+   - Show you what functional programming can do?
+     - purity?
+     - referential transparency?
+   - State management
+   - DevOps
+   - Images, Docker, VM, Clusters
+* The big problem
+  - Has anyone ever used some sort of package management system?
+** Some modern day package management systems
+   | Package manager | Distributions  |
+   |-----------------+----------------|
+   | apt, apt-get    | Debian, Ubuntu |
+   | rpm, yum        | Redhat, Centos |
+   | pacman          | ArchLinux      |
+   | brew            | MacOS          |
+** What about sub ecosystems?
+   | Package manager             | ???            |
+   |-----------------------------+----------------|
+   | pip, virtualenv, pipenv     | Python2,3(???) |
+   | npm, yarn                   | Nodejs         |
+   | cabal, stack, hackage       | Haskell :)     |
+   | go?                         | go?            |
+   | brew                        | MacOS          |
+   | use-package, vim, fish, zsh | ...            |
+** How to make a package manager?
+   - What are the basic parts that we need?
+** How to make a package manager?
+   | build dependencies   | What do I need to build the program? |
+   | runtime dependencies | What ~.so~ shared objects do I need? |
+   | configurations       | What in ~/etc/...~ config files      |
+   - essentially think of it as a graph, whenever we upgrade or install a package,
+     we are mutating a node on this graph to point to something else.
+** Problems with modern package management
+   https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian
+   [[file:./images/screenshot-01.png]]
+** TODO Why imperative is bad? What is so imperative about installing packages?
+   referential transparency
+** Are you familiar with ~DEPENDENCY HELL~?
+   - https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&utm_medium=web2x
+   - https://github.com/vector-im/riot-web/network/dependencies
+** All types of "HELL"
+   https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png
+   - { DLL, dependency, npm, cabal } hell, different names for the same demon
+   - shared components like library links ~cuda.7.so~ vs ~cuda.6.so~
+   - multiple version side by side and roll backs
+** Not Atomic
+   - kill upgrades half way
+   #+BEGIN_SRC sh
+   COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+   dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
+   #+END_SRC
+   - Solution? Reformat!
+** Whats bad about imperative summary?
+   - No referential transparency
+     - cannot point to older versions of the same thing
+   - Dependency hell
+   - Not atomic upgrades
+     - unknown state if break half way
+   These problems are really similar to the problems with imperative languages!
+   like ~JAVA~ and people have already made solutions for them like how ~Haskell~
+   does. We could learn a thing or two from them.
+* What it should/could/would have been?
+  - Imagine now that we implemented all the things of a functional programming
+    language to create a functional package management system?
+  - What can we achieve?
+  - What can we do with this?
+** Introducing NixOS
+   - No referential transparency
+     - cannot point to older versions of the same thing
+   - Dependency hell
+   - Not atomic upgrades
+     - unknown state if break half way
+** demo 1
+** Extra goodies!
+   - same *development* environment as the *runtime* environment!
+   -
+   - show that 2 different version can run at the same time
+   - nix-shell
+   - easy revert
+     - show OS reboot.
+** Going all the way
+   - What happens if you go all the way?
+** There are actually 2 players
