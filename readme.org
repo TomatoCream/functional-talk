@@ -57,22 +57,30 @@
 ** Are you familiar with ~DEPENDENCY HELL~?
    - https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&utm_medium=web2x
    - https://github.com/vector-im/riot-web/network/dependencies
-** All types of "HELL"
+** All types of "DEPENDENCY HELL"
    https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png
    - { DLL, dependency, npm, cabal } hell, different names for the same demon
-   - shared components like library links ~cuda.7.so~ vs ~cuda.6.so~
+   - conflicting dependency
+     - shared components like library links ~cuda.7.so~ vs ~cuda.6.so~
    - multiple version side by side and roll backs
-** Not Atomic
+   - possible solutions
+     - set of stable packages like ~Debian~ or ~haskell stack snapshots~
+** Not Atomic 01 
    - kill upgrades half way
+     - packages left in a semi updated state
+     - sometimes need to manually remove lock files
    #+BEGIN_SRC sh
    COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
    dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
    #+END_SRC
-   - Solution? Reformat!
+** Not Atomic 02
+   - can be fixed but kinda troublesome.
+   [[file:./images/screenshot-02.png]]
 ** Whats bad about imperative summary?
    - No referential transparency
      - cannot point to older versions of the same thing
    - Dependency hell
+     - conflicting dependencies
    - Not atomic upgrades
      - unknown state if break half way
    These problems are really similar to the problems with imperative languages!
@@ -81,22 +89,47 @@
 * What it should/could/would have been?
   - Imagine now that we implemented all the things of a functional programming
     language to create a functional package management system?
-  - What can we achieve?
   - What can we do with this?
-** Introducing NixOS
-   - No referential transparency
-     - cannot point to older versions of the same thing
-   - Dependency hell
-   - Not atomic upgrades
-     - unknown state if break half way
-** demo 1
-** Extra goodies!
+** GUIX vs Nix
+   - [[file:./images/screenshot-04.png]]
+   - [[file:./images/screenshot-03.png]]
+** Introducing Nix Package Management
+   - solves all of the problems above
+     - No referential transparency
+       - cannot point to older versions of the same thing
+     - Dependency hell
+     - Not atomic upgrades
+       - unknown state if break half way
+** Main mechanism
+   - referential transparency
+     - install everything in path ~/nix/store/{hash}-name~
+     - via ~symlinking~
+** What you get for free with this mechanism?
+   - no ~sudo~
+   - easy revert and roll back
+   - 2 different version can run at the same time
    - same *development* environment as the *runtime* environment!
-   -
-   - show that 2 different version can run at the same time
-   - nix-shell
-   - easy revert
-     - show OS reboot.
-** Going all the way
-   - What happens if you go all the way?
+     - nix-shell
+*** no ~sudo~, where is my ~sudo~?
+    - linux was developed as a ~time sharing~ system
+    - many users were expected to share a single computer.
+    - thus to manage conflicts, a ~super user~, ~root~ was required to
+      install and manage packages
+      #+BEGIN_SRC sh
+        nix-env -iA nixos.figlet
+      #+END_SRC
+*** easy revert, rollback
+    #+BEGIN_SRC sh
+      figlet "I am here!"
+    #+END_SRC
+    #+BEGIN_SRC sh
+      nix-env --rollback
+    #+END_SRC
+    #+BEGIN_SRC sh
+      figlet "are you still here?"
+    #+END_SRC
+** Going all the way, NixOS
+   - whole system management via Nix
+     - Version controlled operating system
+     - show OS reboot
 ** There are actually 2 players

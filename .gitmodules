@@ -1,0 +1,3 @@
+[submodule "todomvc-nix"]
+	path = todomvc-nix
+	url = git@github.com:nix-community/todomvc-nix.git

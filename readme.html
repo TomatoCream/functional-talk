@@ -27,40 +27,46 @@
 <div class="reveal">
 <div class="slides">
 <section id="sec-title-slide">
-<h1 class="title">Functional Programming: Real World Performance, Nix and Warp Server</h1><h2 class="author">Wong Ding Feng</h2><p class="date">Created: 2019-07-29 Mon 11:59</p>
+<h1 class="title">Functional Programming: Real World Performance, Nix and Warp Server</h1><h2 class="author">Wong Ding Feng</h2><p class="date">Created: 2019-07-29 Mon 13:27</p>
 </section>
 <section id="table-of-contents-section">
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#/slide-org9218a0a">1. Who am I? Introduction to myself</a>
+<li><a href="#/slide-orgd51141d">1. Who am I? Introduction to myself</a>
 <ul>
-<li><a href="#/slide-orgf5eafab">1.1. My interests</a></li>
-<li><a href="#/slide-org62b7192">1.2. For whom is this talk for?</a></li>
+<li><a href="#/slide-orgc18da41">1.1. My interests</a></li>
+<li><a href="#/slide-org5ecd8b6">1.2. For whom is this talk for?</a></li>
 </ul>
 </li>
-<li><a href="#/slide-org0e39db2">2. The big problem</a>
+<li><a href="#/slide-orgd903696">2. The big problem</a>
 <ul>
-<li><a href="#/slide-org264d103">2.1. Some modern day package management systems</a></li>
-<li><a href="#/slide-org91f9c2a">2.2. What about sub ecosystems?</a></li>
-<li><a href="#/slide-org5d3b655">2.3. How to make a package manager?</a></li>
-<li><a href="#/slide-orgb7e0f96">2.4. How to make a package manager?</a></li>
-<li><a href="#/slide-org5f3d8af">2.5. Problems with modern package management</a></li>
-<li><a href="#/slide-orga2b062b">2.6. <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</a></li>
-<li><a href="#/slide-orgb041ae0">2.7. Are you familiar with <code>DEPENDENCY HELL</code>?</a></li>
-<li><a href="#/slide-org7b6b706">2.8. All types of "HELL"</a></li>
-<li><a href="#/slide-org0fe60dd">2.9. Not Atomic</a></li>
-<li><a href="#/slide-orgede0c84">2.10. Whats bad about imperative summary?</a></li>
+<li><a href="#/slide-orgbb3a161">2.1. Some modern day package management systems</a></li>
+<li><a href="#/slide-org21ab29a">2.2. What about sub ecosystems?</a></li>
+<li><a href="#/slide-org8899ba6">2.3. How to make a package manager?</a></li>
+<li><a href="#/slide-org6c0babc">2.4. How to make a package manager?</a></li>
+<li><a href="#/slide-orgc6ac7c7">2.5. Problems with modern package management</a></li>
+<li><a href="#/slide-org0c10593">2.6. <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</a></li>
+<li><a href="#/slide-orga6e33f4">2.7. Are you familiar with <code>DEPENDENCY HELL</code>?</a></li>
+<li><a href="#/slide-orgd7639a9">2.8. All types of "DEPENDENCY HELL"</a></li>
+<li><a href="#/slide-orga961f68">2.9. Not Atomic 01</a></li>
+<li><a href="#/slide-org856304a">2.10. Not Atomic 02</a></li>
+<li><a href="#/slide-orgf335918">2.11. Whats bad about imperative summary?</a></li>
 </ul>
 </li>
-<li><a href="#/slide-org1b26aac">3. What it should/could/would have been?</a>
+<li><a href="#/slide-orga2e25d8">3. What it should/could/would have been?</a>
 <ul>
-<li><a href="#/slide-org5163bb9">3.1. Introducing NixOS</a></li>
-<li><a href="#/slide-org96bf7b7">3.2. demo 1</a></li>
-<li><a href="#/slide-org4653319">3.3. Extra goodies!</a></li>
-<li><a href="#/slide-orgb7bdc18">3.4. Going all the way</a></li>
-<li><a href="#/slide-orgbf9563e">3.5. There are actually 2 players</a></li>
+<li><a href="#/slide-org61c1a99">3.1. GUIX vs Nix</a></li>
+<li><a href="#/slide-org2864343">3.2. Introducing Nix Package Management</a></li>
+<li><a href="#/slide-orgfabea83">3.3. Main mechanism</a></li>
+<li><a href="#/slide-orgf9a84f9">3.4. Extra goodies!</a>
+<ul>
+<li><a href="#/slide-orgcaa47b8">3.4.1. level 3</a></li>
+</ul>
+</li>
+<li><a href="#/slide-org853837a">3.5. Going all the way, NixOS</a></li>
+<li><a href="#/slide-org3ca3afb">3.6. There are actually 2 players</a></li>
 </ul>
 </li>
 </ul>
@@ -68,8 +74,8 @@
 </div>
 </section>
 <section>
-<section id="slide-org9218a0a">
-<h2 id="org9218a0a"><span class="section-number-2">1</span> Who am I? Introduction to myself</h2>
+<section id="slide-orgd51141d">
+<h2 id="orgd51141d"><span class="section-number-2">1</span> Who am I? Introduction to myself</h2>
 <ul>
 <li>Follow me on github!
 <a href="https://github.com/TomatoCream">https://github.com/TomatoCream</a></li>
@@ -84,8 +90,8 @@
 
 </ul>
 </section>
-<section id="slide-orgf5eafab">
-<h3 id="orgf5eafab"><span class="section-number-3">1.1</span> My interests</h3>
+<section id="slide-orgc18da41">
+<h3 id="orgc18da41"><span class="section-number-3">1.1</span> My interests</h3>
 <ul>
 <li>AI, ML</li>
 <li>Functional programming and abstraction (what the hell is so good about this?)</li>
@@ -98,8 +104,8 @@
 
 </ul>
 </section>
-<section id="slide-org62b7192">
-<h3 id="org62b7192"><span class="section-number-3">1.2</span> For whom is this talk for?</h3>
+<section id="slide-org5ecd8b6">
+<h3 id="org5ecd8b6"><span class="section-number-3">1.2</span> For whom is this talk for?</h3>
 <ul>
 <li>Linux users! Sorry windows users
 <ul>
@@ -120,15 +126,15 @@
 </section>
 </section>
 <section>
-<section id="slide-org0e39db2">
-<h2 id="org0e39db2"><span class="section-number-2">2</span> The big problem</h2>
+<section id="slide-orgd903696">
+<h2 id="orgd903696"><span class="section-number-2">2</span> The big problem</h2>
 <ul>
 <li>Has anyone ever used some sort of package management system?</li>
 
 </ul>
 </section>
-<section id="slide-org264d103">
-<h3 id="org264d103"><span class="section-number-3">2.1</span> Some modern day package management systems</h3>
+<section id="slide-orgbb3a161">
+<h3 id="orgbb3a161"><span class="section-number-3">2.1</span> Some modern day package management systems</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -166,8 +172,8 @@
 </tbody>
 </table>
 </section>
-<section id="slide-org91f9c2a">
-<h3 id="org91f9c2a"><span class="section-number-3">2.2</span> What about sub ecosystems?</h3>
+<section id="slide-org21ab29a">
+<h3 id="org21ab29a"><span class="section-number-3">2.2</span> What about sub ecosystems?</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -215,15 +221,15 @@
 </tbody>
 </table>
 </section>
-<section id="slide-org5d3b655">
-<h3 id="org5d3b655"><span class="section-number-3">2.3</span> How to make a package manager?</h3>
+<section id="slide-org8899ba6">
+<h3 id="org8899ba6"><span class="section-number-3">2.3</span> How to make a package manager?</h3>
 <ul>
 <li>What are the basic parts that we need?</li>
 
 </ul>
 </section>
-<section id="slide-orgb7e0f96">
-<h3 id="orgb7e0f96"><span class="section-number-3">2.4</span> How to make a package manager?</h3>
+<section id="slide-org6c0babc">
+<h3 id="org6c0babc"><span class="section-number-3">2.4</span> How to make a package manager?</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -255,29 +261,29 @@ we are mutating a node on this graph to point to something else.</li>
 
 </ul>
 </section>
-<section id="slide-org5f3d8af">
-<h3 id="org5f3d8af"><span class="section-number-3">2.5</span> Problems with modern package management</h3>
+<section id="slide-orgc6ac7c7">
+<h3 id="orgc6ac7c7"><span class="section-number-3">2.5</span> Problems with modern package management</h3>
 <p>
 <a href="https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian">https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian</a>
 <img src="./images/screenshot-01.png" alt="screenshot-01.png" />
 </p>
 </section>
-<section id="slide-orga2b062b">
-<h3 id="orga2b062b"><span class="section-number-3">2.6</span> <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</h3>
+<section id="slide-org0c10593">
+<h3 id="org0c10593"><span class="section-number-3">2.6</span> <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</h3>
 <p>
 referential transparency
 </p>
 </section>
-<section id="slide-orgb041ae0">
-<h3 id="orgb041ae0"><span class="section-number-3">2.7</span> Are you familiar with <code>DEPENDENCY HELL</code>?</h3>
+<section id="slide-orga6e33f4">
+<h3 id="orga6e33f4"><span class="section-number-3">2.7</span> Are you familiar with <code>DEPENDENCY HELL</code>?</h3>
 <ul>
 <li><a href="https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x">https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x</a></li>
 <li><a href="https://github.com/vector-im/riot-web/network/dependencies">https://github.com/vector-im/riot-web/network/dependencies</a></li>
 
 </ul>
 </section>
-<section id="slide-org7b6b706">
-<h3 id="org7b6b706"><span class="section-number-3">2.8</span> All types of "HELL"</h3>
+<section id="slide-orgd7639a9">
+<h3 id="orgd7639a9"><span class="section-number-3">2.8</span> All types of "DEPENDENCY HELL"</h3>
 
 <div class="figure">
 <p><img src="https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png" alt="0*7ezJOtYUkI5zyqWU.png" />
@@ -285,15 +291,29 @@ referential transparency
 </div>
 <ul>
 <li>{ DLL, dependency, npm, cabal } hell, different names for the same demon</li>
+<li>conflicting dependency
+<ul>
 <li>shared components like library links <code>cuda.7.so</code> vs <code>cuda.6.so</code></li>
+
+</ul></li>
 <li>multiple version side by side and roll backs</li>
+<li>possible solutions
+<ul>
+<li>set of stable packages like <code>Debian</code> or <code>haskell stack snapshots</code></li>
+
+</ul></li>
 
 </ul>
 </section>
-<section id="slide-org0fe60dd">
-<h3 id="org0fe60dd"><span class="section-number-3">2.9</span> Not Atomic</h3>
+<section id="slide-orga961f68">
+<h3 id="orga961f68"><span class="section-number-3">2.9</span> Not Atomic 01</h3>
 <ul>
-<li>kill upgrades half way</li>
+<li>kill upgrades half way
+<ul>
+<li>packages left in a semi updated state</li>
+<li>sometimes need to manually remove lock files</li>
+
+</ul></li>
 
 </ul>
 <div class="org-src-container">
@@ -302,20 +322,32 @@ referential transparency
 dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
 </pre>
 </div>
+</section>
+<section id="slide-org856304a">
+<h3 id="org856304a"><span class="section-number-3">2.10</span> Not Atomic 02</h3>
 <ul>
-<li>Solution? Reformat!</li>
+<li>can be fixed but kinda troublesome.</li>
 
 </ul>
+
+<div class="figure">
+<p><img src="./images/screenshot-02.png" alt="screenshot-02.png" />
+</p>
+</div>
 </section>
-<section id="slide-orgede0c84">
-<h3 id="orgede0c84"><span class="section-number-3">2.10</span> Whats bad about imperative summary?</h3>
+<section id="slide-orgf335918">
+<h3 id="orgf335918"><span class="section-number-3">2.11</span> Whats bad about imperative summary?</h3>
 <ul>
 <li>No referential transparency
 <ul>
 <li>cannot point to older versions of the same thing</li>
 
 </ul></li>
-<li>Dependency hell</li>
+<li>Dependency hell
+<ul>
+<li>conflicting dependencies</li>
+
+</ul></li>
 <li>Not atomic upgrades
 <ul>
 <li>unknown state if break half way</li>
@@ -331,18 +363,27 @@ does. We could learn a thing or two from them.
 </section>
 </section>
 <section>
-<section id="slide-org1b26aac">
-<h2 id="org1b26aac"><span class="section-number-2">3</span> What it should/could/would have been?</h2>
+<section id="slide-orga2e25d8">
+<h2 id="orga2e25d8"><span class="section-number-2">3</span> What it should/could/would have been?</h2>
 <ul>
 <li>Imagine now that we implemented all the things of a functional programming
 language to create a functional package management system?</li>
-<li>What can we achieve?</li>
 <li>What can we do with this?</li>
 
 </ul>
 </section>
-<section id="slide-org5163bb9">
-<h3 id="org5163bb9"><span class="section-number-3">3.1</span> Introducing NixOS</h3>
+<section id="slide-org61c1a99">
+<h3 id="org61c1a99"><span class="section-number-3">3.1</span> GUIX vs Nix</h3>
+<ul>
+<li><img src="./images/screenshot-04.png" alt="screenshot-04.png" /></li>
+<li><img src="./images/screenshot-03.png" alt="screenshot-03.png" /></li>
+
+</ul>
+</section>
+<section id="slide-org2864343">
+<h3 id="org2864343"><span class="section-number-3">3.2</span> Introducing Nix Package Management</h3>
+<ul>
+<li>solves all of the problems above
 <ul>
 <li>No referential transparency
 <ul>
@@ -356,36 +397,51 @@ language to create a functional package management system?</li>
 
 </ul></li>
 
+</ul></li>
+
 </ul>
 </section>
-<section id="slide-org96bf7b7">
-<h3 id="org96bf7b7"><span class="section-number-3">3.2</span> demo 1</h3>
-</section>
-<section id="slide-org4653319">
-<h3 id="org4653319"><span class="section-number-3">3.3</span> Extra goodies!</h3>
+<section id="slide-orgfabea83">
+<h3 id="orgfabea83"><span class="section-number-3">3.3</span> Main mechanism</h3>
 <ul>
-<li>same <b>development</b> environment as the <b>runtime</b> environment!</li>
-<li></li>
-
-<li>show that 2 different version can run at the same time</li>
-<li>nix-shell</li>
-<li>easy revert
+<li>referential transparency
 <ul>
-<li>show OS reboot.</li>
+<li>via <code>symlinking</code></li>
 
 </ul></li>
 
 </ul>
 </section>
-<section id="slide-orgb7bdc18">
-<h3 id="orgb7bdc18"><span class="section-number-3">3.4</span> Going all the way</h3>
+<section id="slide-orgf9a84f9">
+<h3 id="orgf9a84f9"><span class="section-number-3">3.4</span> Extra goodies!</h3>
 <ul>
-<li>What happens if you go all the way?</li>
+<li>easy revert and roll back</li>
+<li>2 different version can run at the same time</li>
+<li>same <b>development</b> environment as the <b>runtime</b> environment!
+<ul>
+<li>nix-shell</li>
+
+</ul></li>
 
 </ul>
 </section>
-<section id="slide-orgbf9563e">
-<h3 id="orgbf9563e"><span class="section-number-3">3.5</span> There are actually 2 players</h3>
+<section id="slide-orgcaa47b8">
+<h4 id="orgcaa47b8"><span class="section-number-4">3.4.1</span> level 3</h4>
+</section>
+<section id="slide-org853837a">
+<h3 id="org853837a"><span class="section-number-3">3.5</span> Going all the way, NixOS</h3>
+<ul>
+<li>whole system management via Nix
+<ul>
+<li>Version controlled operating system</li>
+<li>show OS reboot</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-org3ca3afb">
+<h3 id="org3ca3afb"><span class="section-number-3">3.6</span> There are actually 2 players</h3>
 </section>
 </section>
 </div>
