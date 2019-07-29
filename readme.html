@@ -9,7 +9,7 @@
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/css/reveal.css"/>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/css/theme/moon.css" id="theme"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js/css/theme/night.css" id="theme"/>
 
 
 <!-- If the query includes 'print-pdf', include the PDF print sheet -->
@@ -27,55 +27,11 @@
 <div class="reveal">
 <div class="slides">
 <section id="sec-title-slide">
-<h1 class="title">Functional Programming: Real World Performance, Nix and Warp Server</h1><h2 class="author">Wong Ding Feng</h2><p class="date">Created: 2019-07-29 Mon 13:27</p>
-</section>
-<section id="table-of-contents-section">
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="#/slide-orgd51141d">1. Who am I? Introduction to myself</a>
-<ul>
-<li><a href="#/slide-orgc18da41">1.1. My interests</a></li>
-<li><a href="#/slide-org5ecd8b6">1.2. For whom is this talk for?</a></li>
-</ul>
-</li>
-<li><a href="#/slide-orgd903696">2. The big problem</a>
-<ul>
-<li><a href="#/slide-orgbb3a161">2.1. Some modern day package management systems</a></li>
-<li><a href="#/slide-org21ab29a">2.2. What about sub ecosystems?</a></li>
-<li><a href="#/slide-org8899ba6">2.3. How to make a package manager?</a></li>
-<li><a href="#/slide-org6c0babc">2.4. How to make a package manager?</a></li>
-<li><a href="#/slide-orgc6ac7c7">2.5. Problems with modern package management</a></li>
-<li><a href="#/slide-org0c10593">2.6. <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</a></li>
-<li><a href="#/slide-orga6e33f4">2.7. Are you familiar with <code>DEPENDENCY HELL</code>?</a></li>
-<li><a href="#/slide-orgd7639a9">2.8. All types of "DEPENDENCY HELL"</a></li>
-<li><a href="#/slide-orga961f68">2.9. Not Atomic 01</a></li>
-<li><a href="#/slide-org856304a">2.10. Not Atomic 02</a></li>
-<li><a href="#/slide-orgf335918">2.11. Whats bad about imperative summary?</a></li>
-</ul>
-</li>
-<li><a href="#/slide-orga2e25d8">3. What it should/could/would have been?</a>
-<ul>
-<li><a href="#/slide-org61c1a99">3.1. GUIX vs Nix</a></li>
-<li><a href="#/slide-org2864343">3.2. Introducing Nix Package Management</a></li>
-<li><a href="#/slide-orgfabea83">3.3. Main mechanism</a></li>
-<li><a href="#/slide-orgf9a84f9">3.4. Extra goodies!</a>
-<ul>
-<li><a href="#/slide-orgcaa47b8">3.4.1. level 3</a></li>
-</ul>
-</li>
-<li><a href="#/slide-org853837a">3.5. Going all the way, NixOS</a></li>
-<li><a href="#/slide-org3ca3afb">3.6. There are actually 2 players</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</div>
+<h1 class="title">Functional Programming: Real World Performance, Nix and Warp Server</h1><h2 class="author">Wong Ding Feng</h2><p class="date">Created: 2019-07-29 Mon 23:35</p>
 </section>
 <section>
-<section id="slide-orgd51141d">
-<h2 id="orgd51141d"><span class="section-number-2">1</span> Who am I? Introduction to myself</h2>
+<section id="slide-orgaf85bc6">
+<h2 id="orgaf85bc6"><span class="section-number-2">1</span> Who am I? Introduction to myself</h2>
 <ul>
 <li>Follow me on github!
 <a href="https://github.com/TomatoCream">https://github.com/TomatoCream</a></li>
@@ -90,22 +46,16 @@
 
 </ul>
 </section>
-<section id="slide-orgc18da41">
-<h3 id="orgc18da41"><span class="section-number-3">1.1</span> My interests</h3>
+<section id="slide-orgac023df">
+<h3 id="orgac023df"><span class="section-number-3">1.1</span> My interests</h3>
 <ul>
 <li>AI, ML</li>
 <li>Functional programming and abstraction (what the hell is so good about this?)</li>
-<li>Philosophy
-<ul>
-<li>occam's razor
-&lt;peekture&gt;</li>
-
-</ul></li>
 
 </ul>
 </section>
-<section id="slide-org5ecd8b6">
-<h3 id="org5ecd8b6"><span class="section-number-3">1.2</span> For whom is this talk for?</h3>
+<section id="slide-org5e50064">
+<h3 id="org5e50064"><span class="section-number-3">1.2</span> For whom is this talk for?</h3>
 <ul>
 <li>Linux users! Sorry windows users
 <ul>
@@ -121,20 +71,21 @@
 <li>State management</li>
 <li>DevOps</li>
 <li>Images, Docker, VM, Clusters</li>
+<li>I will give you a feel of <code>Nix</code> not the nitty gritty details</li>
 
 </ul>
 </section>
 </section>
 <section>
-<section id="slide-orgd903696">
-<h2 id="orgd903696"><span class="section-number-2">2</span> The big problem</h2>
+<section id="slide-org70b5850">
+<h2 id="org70b5850"><span class="section-number-2">2</span> The big problem</h2>
 <ul>
 <li>Has anyone ever used some sort of package management system?</li>
 
 </ul>
 </section>
-<section id="slide-orgbb3a161">
-<h3 id="orgbb3a161"><span class="section-number-3">2.1</span> Some modern day package management systems</h3>
+<section id="slide-orgd2875b5">
+<h3 id="orgd2875b5"><span class="section-number-3">2.1</span> Some modern day package management systems</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -172,8 +123,8 @@
 </tbody>
 </table>
 </section>
-<section id="slide-org21ab29a">
-<h3 id="org21ab29a"><span class="section-number-3">2.2</span> What about sub ecosystems?</h3>
+<section id="slide-orgbd17151">
+<h3 id="orgbd17151"><span class="section-number-3">2.2</span> What about sub ecosystems?</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -221,15 +172,15 @@
 </tbody>
 </table>
 </section>
-<section id="slide-org8899ba6">
-<h3 id="org8899ba6"><span class="section-number-3">2.3</span> How to make a package manager?</h3>
+<section id="slide-orgb84485a">
+<h3 id="orgb84485a"><span class="section-number-3">2.3</span> How to make a package manager?</h3>
 <ul>
 <li>What are the basic parts that we need?</li>
 
 </ul>
 </section>
-<section id="slide-org6c0babc">
-<h3 id="org6c0babc"><span class="section-number-3">2.4</span> How to make a package manager?</h3>
+<section id="slide-orgd7d986d">
+<h3 id="orgd7d986d"><span class="section-number-3">2.4</span> How to make a package manager?</h3>
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
 
@@ -261,29 +212,29 @@ we are mutating a node on this graph to point to something else.</li>
 
 </ul>
 </section>
-<section id="slide-orgc6ac7c7">
-<h3 id="orgc6ac7c7"><span class="section-number-3">2.5</span> Problems with modern package management</h3>
+<section id="slide-org38617ee">
+<h3 id="org38617ee"><span class="section-number-3">2.5</span> Problems with modern package management</h3>
 <p>
 <a href="https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian">https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian</a>
 <img src="./images/screenshot-01.png" alt="screenshot-01.png" />
 </p>
 </section>
-<section id="slide-org0c10593">
-<h3 id="org0c10593"><span class="section-number-3">2.6</span> <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</h3>
+<section id="slide-org052da20">
+<h3 id="org052da20"><span class="section-number-3">2.6</span> <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</h3>
 <p>
 referential transparency
 </p>
 </section>
-<section id="slide-orga6e33f4">
-<h3 id="orga6e33f4"><span class="section-number-3">2.7</span> Are you familiar with <code>DEPENDENCY HELL</code>?</h3>
+<section id="slide-org859f1f9">
+<h3 id="org859f1f9"><span class="section-number-3">2.7</span> Are you familiar with <code>DEPENDENCY HELL</code>?</h3>
 <ul>
 <li><a href="https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x">https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x</a></li>
 <li><a href="https://github.com/vector-im/riot-web/network/dependencies">https://github.com/vector-im/riot-web/network/dependencies</a></li>
 
 </ul>
 </section>
-<section id="slide-orgd7639a9">
-<h3 id="orgd7639a9"><span class="section-number-3">2.8</span> All types of "DEPENDENCY HELL"</h3>
+<section id="slide-orga72b73a">
+<h3 id="orga72b73a"><span class="section-number-3">2.8</span> All types of "DEPENDENCY HELL"</h3>
 
 <div class="figure">
 <p><img src="https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png" alt="0*7ezJOtYUkI5zyqWU.png" />
@@ -305,8 +256,8 @@ referential transparency
 
 </ul>
 </section>
-<section id="slide-orga961f68">
-<h3 id="orga961f68"><span class="section-number-3">2.9</span> Not Atomic 01</h3>
+<section id="slide-org5f35e08">
+<h3 id="org5f35e08"><span class="section-number-3">2.9</span> Not Atomic 01</h3>
 <ul>
 <li>kill upgrades half way
 <ul>
@@ -323,8 +274,8 @@ dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
 </pre>
 </div>
 </section>
-<section id="slide-org856304a">
-<h3 id="org856304a"><span class="section-number-3">2.10</span> Not Atomic 02</h3>
+<section id="slide-org86f5199">
+<h3 id="org86f5199"><span class="section-number-3">2.10</span> Not Atomic 02</h3>
 <ul>
 <li>can be fixed but kinda troublesome.</li>
 
@@ -335,8 +286,8 @@ dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
 </p>
 </div>
 </section>
-<section id="slide-orgf335918">
-<h3 id="orgf335918"><span class="section-number-3">2.11</span> Whats bad about imperative summary?</h3>
+<section id="slide-orgb8a7ea4">
+<h3 id="orgb8a7ea4"><span class="section-number-3">2.11</span> Whats bad about imperative summary?</h3>
 <ul>
 <li>No referential transparency
 <ul>
@@ -363,8 +314,8 @@ does. We could learn a thing or two from them.
 </section>
 </section>
 <section>
-<section id="slide-orga2e25d8">
-<h2 id="orga2e25d8"><span class="section-number-2">3</span> What it should/could/would have been?</h2>
+<section id="slide-orge909812">
+<h2 id="orge909812"><span class="section-number-2">3</span> What it should/could/would have been?</h2>
 <ul>
 <li>Imagine now that we implemented all the things of a functional programming
 language to create a functional package management system?</li>
@@ -372,16 +323,16 @@ language to create a functional package management system?</li>
 
 </ul>
 </section>
-<section id="slide-org61c1a99">
-<h3 id="org61c1a99"><span class="section-number-3">3.1</span> GUIX vs Nix</h3>
+<section id="slide-org5a7ff7b">
+<h3 id="org5a7ff7b"><span class="section-number-3">3.1</span> GUIX vs Nix</h3>
 <ul>
 <li><img src="./images/screenshot-04.png" alt="screenshot-04.png" /></li>
 <li><img src="./images/screenshot-03.png" alt="screenshot-03.png" /></li>
 
 </ul>
 </section>
-<section id="slide-org2864343">
-<h3 id="org2864343"><span class="section-number-3">3.2</span> Introducing Nix Package Management</h3>
+<section id="slide-org68958f8">
+<h3 id="org68958f8"><span class="section-number-3">3.2</span> Introducing Nix Package Management</h3>
 <ul>
 <li>solves all of the problems above
 <ul>
@@ -401,21 +352,24 @@ language to create a functional package management system?</li>
 
 </ul>
 </section>
-<section id="slide-orgfabea83">
-<h3 id="orgfabea83"><span class="section-number-3">3.3</span> Main mechanism</h3>
+<section id="slide-org0f28f50">
+<h3 id="org0f28f50"><span class="section-number-3">3.3</span> Main mechanism</h3>
 <ul>
 <li>referential transparency
 <ul>
+<li>install everything in path <code>/nix/store/{hash}-name</code></li>
 <li>via <code>symlinking</code></li>
 
 </ul></li>
 
 </ul>
 </section>
-<section id="slide-orgf9a84f9">
-<h3 id="orgf9a84f9"><span class="section-number-3">3.4</span> Extra goodies!</h3>
+<section id="slide-orgd166768">
+<h3 id="orgd166768"><span class="section-number-3">3.4</span> What you get for free with this mechanism?</h3>
 <ul>
+<li>no <code>sudo</code></li>
 <li>easy revert and roll back</li>
+<li>select specific version</li>
 <li>2 different version can run at the same time</li>
 <li>same <b>development</b> environment as the <b>runtime</b> environment!
 <ul>
@@ -425,23 +379,248 @@ language to create a functional package management system?</li>
 
 </ul>
 </section>
-<section id="slide-orgcaa47b8">
-<h4 id="orgcaa47b8"><span class="section-number-4">3.4.1</span> level 3</h4>
-</section>
-<section id="slide-org853837a">
-<h3 id="org853837a"><span class="section-number-3">3.5</span> Going all the way, NixOS</h3>
+<section id="slide-orgdfdc10c">
+<h4 id="orgdfdc10c"><span class="section-number-4">3.4.1</span> no <code>sudo</code>, where is my <code>sudo</code>?</h4>
 <ul>
-<li>whole system management via Nix
+<li>linux was developed as a <code>time sharing</code> system</li>
+<li>many users were expected to share a single computer.</li>
+<li><p>
+thus to manage conflicts, a <code>super user</code>, <code>root</code> was required to
+install and manage packages
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-sh">nix-env -iA nixos.figlet
+</pre>
+</div></li>
+
+</ul>
+</section>
+<section id="slide-orgb1f40a8">
+<h4 id="orgb1f40a8"><span class="section-number-4">3.4.2</span> easy revert, rollback</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">figlet <span style="color: #ff4ea3;">"I am here!"</span>
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre  class="src src-sh">nix-env --rollback
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre  class="src src-sh">figlet <span style="color: #ff4ea3;">"are you still here?"</span>
+</pre>
+</div>
+</section>
+<section id="slide-org5bea74a">
+<h4 id="org5bea74a"><span class="section-number-4">3.4.3</span> Select specific version</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/nix-config/
+git checkout ??
+nix-env -f ~/projects/nix-config/ -iA screenfetch
+</pre>
+</div>
+<p>
+screenfetch 2016 vs current
+</p>
+</section>
+<section id="slide-org8aef329">
+<h4 id="org8aef329"><span class="section-number-4">3.4.4</span> Installing and running 2 version of same software</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh">stack --version
+su
+stack --version
+</pre>
+</div>
+</section>
+<section id="slide-orgd25d776">
+<h4 id="orgd25d776"><span class="section-number-4">3.4.5</span> Same development environment and runtime environment</h4>
+<ul>
+<li>I am not an electrical engineer or something but I program my
+own keyboard. So I need some sort of firmware flasher. like
+<code>dfuprogrammer</code> I dont need it on my system.</li>
+
+</ul>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/qmk_firmware/
+make
+dfuprogrammer
+nix-shell
+make
+dfuprogrammer
+</pre>
+</div>
+</section>
+<section id="slide-orgf4f48db">
+<h3 id="orgf4f48db"><span class="section-number-3">3.5</span> Going all the way, NixOS</h3>
+<ul>
+<li>whole system management via Nix and thus NixOS
 <ul>
 <li>Version controlled operating system</li>
 <li>show OS reboot</li>
+<li>I wanted to show my generations so had been delaying removing
+my older generations</li>
+
+</ul></li>
+
+</ul>
+<div class="org-src-container">
+
+<pre  class="src src-sh">df -h /
+nix-collect-garbage --delete-older-than 10 --dry-run
+</pre>
+</div>
+</section>
+<section id="slide-org9475ed0">
+<h4 id="org9475ed0"><span class="section-number-4">3.5.1</span> NixOS</h4>
+<ul>
+<li>show <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
+<li>python package management <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
+<li>gnupg agent <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
+<li>ports <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
+<ul>
+<li>I think it helps me get a state of all the ports in one place</li>
+
+</ul></li>
+<li>users and security all in one place
+<a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
+<ul>
+<li>authorisedkeys</li>
+
+</ul></li>
+<li>postgresql can be packaged in <code>shell.nix</code>
+<a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
+<ul>
+<li>separate project called <code>nixos-shell</code>
+<a href="https://github.com/chrisfarms/nixos-shell">https://github.com/chrisfarms/nixos-shell</a></li>
+
+</ul></li>
+<li>filesystems <a href="file:///etc/nixos/hardware-configuration.nix">file:///etc/nixos/hardware-configuration.nix</a></li>
+
+</ul>
+</section>
+<section id="slide-orgb135efb">
+<h4 id="orgb135efb"><span class="section-number-4">3.5.2</span> docker</h4>
+<p>
+<a href="https://nixos.wiki/wiki/Docker">https://nixos.wiki/wiki/Docker</a>
+</p>
+<div class="org-src-container">
+
+<pre  class="src src-nix"><span style="color: #ff8700;">virtualisation.docker.enable</span> = <span style="color: #d18aff;">true</span>;
+users.users.<span style="color: #5fafd7;">&lt;myuser&gt;</span>.<span style="color: #ff8700;">extraGroups</span> = <span style="color: #dd0000; font-weight: bold;">[</span> <span style="color: #ff4ea3;">"docker"</span> <span style="color: #dd0000; font-weight: bold;">]</span>;
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre  class="src src-sh">nix-build <span style="color: #ff4ea3;">'&lt;nixpkgs&gt;'</span> -A dockerTools.examples.redis
+docker load &lt; result
+</pre>
+</div>
+<p>
+<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix">https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix</a>
+</p>
+</section>
+<section id="slide-orgd72abf5">
+<h4 id="orgd72abf5"><span class="section-number-4">3.5.3</span> easy cd/dvd</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/nixpkgs
+nix-build -A config.system.build.isoImage -I nixos-config=modules/installer/cd-dvd/installation-cd-minimal.nix default.nix
+</pre>
+</div>
+</section>
+<section id="slide-orga15d8a8">
+<h4 id="orga15d8a8"><span class="section-number-4">3.5.4</span> easy vm</h4>
+<div class="org-src-container">
+
+<pre  class="src src-sh"><span style="color: #d18aff;">cd</span> ./nixops
+nixops create -d simple02 network.nix
+nixops deploy -d simple02
+</pre>
+</div>
+<div class="org-src-container">
+
+<pre  class="src src-nix"><span style="color: #ff8700;">deployment.targetEnv</span> = <span style="color: #ff4ea3;">"ec2"</span>;
+<span style="color: #ff8700;">deployment.region</span> = <span style="color: #ff4ea3;">"eu-west-1"</span>;
+</pre>
+</div>
+</section>
+</section>
+<section>
+<section id="slide-orgdebb1b4">
+<h2 id="orgdebb1b4"><span class="section-number-2">4</span> How does nix actually work?</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+</section>
+<section id="slide-orgd8073ff">
+<h3 id="orgd8073ff"><span class="section-number-3">4.1</span> Nix expressions</h3>
+<ul>
+<li>functional expressions, not general purpose please do not program
+things with it</li>
+<li>comes with its own BNF grammar</li>
+
+</ul>
+
+<div class="figure">
+<p><img src="./images/screenshot-05.png" alt="screenshot-05.png" />
+</p>
+</div>
+</section>
+<section id="slide-org770f704">
+<h3 id="org770f704"><span class="section-number-3">4.2</span> Language features</h3>
+<ul>
+<li>Nix expressions
+<ul>
+<li>dynamically typed</li>
+<li>lazy</li>
+<li>pure</li>
 
 </ul></li>
 
 </ul>
 </section>
-<section id="slide-org3ca3afb">
-<h3 id="org3ca3afb"><span class="section-number-3">3.6</span> There are actually 2 players</h3>
+<section id="slide-org17ac6ec">
+<h3 id="org17ac6ec"><span class="section-number-3">4.3</span> The main point</h3>
+<ul>
+<li>Nix expressions are here to describe a graph of build actions
+called <code>derivations</code>
+<ul>
+<li>build script</li>
+<li>set of environment variables</li>
+<li>set of dependencies</li>
+
+</ul></li>
+
+</ul>
+</section>
+<section id="slide-orgf5b1a06">
+<h3 id="orgf5b1a06"><span class="section-number-3">4.4</span> Example: Xmonad</h3>
+
+<div class="figure">
+<p><img src="./images/screenshot-06.png" alt="screenshot-06.png" />
+</p>
+</div>
+</section>
+<section id="slide-org77c1e31">
+<h3 id="org77c1e31"><span class="section-number-3">4.5</span> Example: Xmonad</h3>
+
+<div class="figure">
+<p><img src="./images/screenshot-07.png" alt="screenshot-07.png" />
+</p>
+</div>
+</section>
+<section id="slide-org6921dc5">
+<h3 id="org6921dc5"><span class="section-number-3">4.6</span> Main mechanism</h3>
+
+<div class="figure">
+<p><img src="./images/screenshot-08.png" alt="screenshot-08.png" />
+</p>
+</div>
 </section>
 </section>
 </div>

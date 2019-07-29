@@ -1,4 +1,6 @@
 #+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js
+#+OPTIONS: toc:nil reveal_mathjax:t
+#+REVEAL_THEME: night
 #+TITLE: Functional Programming: Real World Performance, Nix and Warp Server
 * Who am I? Introduction to myself
   - Follow me on github!
@@ -11,9 +13,6 @@
 ** My interests
    - AI, ML
    - Functional programming and abstraction (what the hell is so good about this?)
-   - Philosophy
-     - occam's razor
-       <peekture>
 ** For whom is this talk for?
    - Linux users! Sorry windows users
      - But not really (departs away from a unix way of doing things)
@@ -23,6 +22,7 @@
    - State management
    - DevOps
    - Images, Docker, VM, Clusters
+   - I will give you a feel of ~Nix~ not the nitty gritty details
 * The big problem
   - Has anyone ever used some sort of package management system?
 ** Some modern day package management systems
@@ -65,7 +65,7 @@
    - multiple version side by side and roll backs
    - possible solutions
      - set of stable packages like ~Debian~ or ~haskell stack snapshots~
-** Not Atomic 01 
+** Not Atomic 01
    - kill upgrades half way
      - packages left in a semi updated state
      - sometimes need to manually remove lock files
@@ -107,6 +107,7 @@
 ** What you get for free with this mechanism?
    - no ~sudo~
    - easy revert and roll back
+   - select specific version
    - 2 different version can run at the same time
    - same *development* environment as the *runtime* environment!
      - nix-shell
@@ -128,8 +129,115 @@
     #+BEGIN_SRC sh
       figlet "are you still here?"
     #+END_SRC
+*** Select specific version
+    #+BEGIN_SRC sh
+      cd ~/projects/nix-config/
+      git checkout ??
+      nix-env -f ~/projects/nix-config/ -iA screenfetch
+    #+END_SRC
+    screenfetch 2016 vs current
+*** Installing and running 2 version of same software
+    #+BEGIN_SRC sh
+      stack --version
+      su
+      stack --version
+    #+END_SRC
+*** Same development environment and runtime environment
+    - I am not an electrical engineer or something but I program my
+      own keyboard. So I need some sort of firmware flasher. like
+      ~dfuprogrammer~ I dont need it on my system.
+    #+BEGIN_SRC sh
+      cd ~/projects/qmk_firmware/
+      make
+      dfuprogrammer
+      nix-shell
+      make
+      dfuprogrammer
+    #+END_SRC
 ** Going all the way, NixOS
-   - whole system management via Nix
+   - whole system management via Nix and thus NixOS
      - Version controlled operating system
      - show OS reboot
-** There are actually 2 players
+     - I wanted to show my generations so had been delaying removing
+       my older generations
+   #+BEGIN_SRC sh
+     df -h /
+     nix-collect-garbage --delete-older-than 10 --dry-run
+   #+END_SRC
+*** NixOS
+    - show [[file+emacs:~/nix-config/configuration.nix]]
+    - python package management [[file+emacs:~/nix-config/configuration.nix]]
+    - gnupg agent [[file+emacs:~/nix-config/configuration.nix]]
+    - ports [[file+emacs:~/nix-config/configuration.nix]]
+      - I think it helps me get a state of all the ports in one place
+    - users and security all in one place
+      [[file+emacs:~/nix-config/configuration.nix]]
+      - authorisedkeys
+    - postgresql can be packaged in ~shell.nix~
+      [[file+emacs:~/nix-config/configuration.nix]]
+      - separate project called ~nixos-shell~
+        [[https://github.com/chrisfarms/nixos-shell]]
+    - filesystems [[file+emacs:/etc/nixos/hardware-configuration.nix]]
+*** COMMENT NixOS
+    - show [[file+emacs:~/nix-config/configuration.nix]]
+    - python package management [[file+emacs:~/nix-config/configuration.nix::84]]
+    - gnupg agent [[file+emacs:~/nix-config/configuration.nix::289]]
+    - ports [[file+emacs:~/nix-config/configuration.nix::324]]
+      - I think it helps me get a state of all the ports in one place
+    - users and security all in one place
+      [[file+emacs:~/nix-config/configuration.nix::400]]
+      - authorisedkeys
+    - postgresql can be packaged in ~shell.nix~
+      [[file+emacs:~/nix-config/configuration.nix::426]]
+      - separate project called ~nixos-shell~
+        [[https://github.com/chrisfarms/nixos-shell]]
+    - filesystems [[file+emacs:/etc/nixos/hardware-configuration.nix::23]]
+*** docker
+    [[https://nixos.wiki/wiki/Docker]]
+    #+BEGIN_SRC nix
+      virtualisation.docker.enable = true;
+      users.users.<myuser>.extraGroups = [ "docker" ];
+    #+END_SRC
+    #+BEGIN_SRC sh
+      nix-build '<nixpkgs>' -A dockerTools.examples.redis
+      docker load < result
+    #+END_SRC
+    [[https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix]]
+*** easy cd/dvd
+    #+BEGIN_SRC sh
+      cd ~/projects/nixpkgs
+      nix-build -A config.system.build.isoImage -I nixos-config=modules/installer/cd-dvd/installation-cd-minimal.nix default.nix
+    #+END_SRC
+*** easy vm
+    #+BEGIN_SRC sh
+      cd ./nixops
+      nixops create -d simple02 network.nix
+      nixops deploy -d simple02
+    #+END_SRC
+    #+BEGIN_SRC nix
+      deployment.targetEnv = "ec2";
+      deployment.region = "eu-west-1";
+    #+END_SRC
+* How does nix actually work?
+** Nix expressions
+   - functional expressions, not general purpose please do not program
+     things with it
+   - comes with its own BNF grammar
+   [[file:./images/screenshot-05.png]]
+** Language features
+   - Nix expressions
+     - dynamically typed
+     - lazy
+     - pure
+** The main point
+   - Nix expressions are here to describe a graph of build actions
+     called ~derivations~
+     - build script
+     - set of environment variables
+     - set of dependencies
+** Example: Xmonad
+   [[file:./images/screenshot-06.png]]
+** Example: Xmonad
+   [[file:./images/screenshot-07.png]]
+** Main mechanism
+   [[file:./images/screenshot-08.png]]
