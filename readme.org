@@ -1,6 +1,5 @@
 #+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js
-#+OPTIONS: toc:nil reveal_mathjax:t
-#+REVEAL_THEME: night
+#+OPTIONS: reveal_mathjax:t
 #+TITLE: Functional Programming: Real World Performance, Nix and Warp Server
 * Who am I? Introduction to myself
   - Follow me on github!
@@ -14,6 +13,7 @@
    - AI, ML
    - Functional programming and abstraction (what the hell is so good about this?)
 ** For whom is this talk for?
+   DEADLINE: <2019-07-30 Tue>
    - Linux users! Sorry windows users
      - But not really (departs away from a unix way of doing things)
    - Show you what functional programming can do?
@@ -23,8 +23,11 @@
    - DevOps
    - Images, Docker, VM, Clusters
    - I will give you a feel of ~Nix~ not the nitty gritty details
-* The big problem
+* The big problem, package manager wars!
+  - What is the best package manager?
   - Has anyone ever used some sort of package management system?
+** slant.co's opinions
+   [[file:./images/screenshot-09.png]]
 ** Some modern day package management systems
    | Package manager | Distributions  |
    |-----------------+----------------|
@@ -49,6 +52,29 @@
    | configurations       | What in ~/etc/...~ config files      |
    - essentially think of it as a graph, whenever we upgrade or install a package,
      we are mutating a node on this graph to point to something else.
+*** real senario
+    #+BEGIN_SRC sh
+      pkgname=pacman
+      pkgver=5.1.0
+      _pkgver=1.0.0
+      pkgrel=2
+      pkgdesc="A library-based package manager with dependency support"
+      arch=('i686' 'x86_64')
+      url="http://www.archlinux.org/pacman/"
+      license=('GPL')
+      groups=('base' 'base-devel')
+      depends=('bash>=4.2.042-2' 'glibc>=2.17-2' 'libarchive>=3.1.2' 'curl>=7.39.0'
+               'gpgme' 'archlinux-keyring' 'manjaro-keyring' 'pacman-mirrors>=4.1.0')
+      checkdepends=('python2' 'fakechroot')
+      makedepends=('asciidoc' 'pacman>=5.1')
+      optdepends=('haveged: for pacman-init.service')
+      provides=('pacman-contrib' 'pacman-init')
+      conflicts=('pacman-contrib' 'pacman-init')
+      replaces=('pacman-contrib' 'pacman-init')
+      backup=(etc/pacman.conf etc/makepkg.conf)
+      install=pacman.install
+      options=('strip' 'debug')
+    #+END_SRC
 ** Problems with modern package management
    https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian
    [[file:./images/screenshot-01.png]]
