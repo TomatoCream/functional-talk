@@ -12,8 +12,9 @@
 ** My interests
    - AI, ML
    - Functional programming and abstraction (what the hell is so good about this?)
+   - philosophy
+     - occam's razor
 ** For whom is this talk for?
-   DEADLINE: <2019-07-30 Tue>
    - Linux users! Sorry windows users
      - But not really (departs away from a unix way of doing things)
    - Show you what functional programming can do?
@@ -267,3 +268,25 @@
    [[file:./images/screenshot-07.png]]
 ** Main mechanism
    [[file:./images/screenshot-08.png]]
+* Nix as infrastructure (imagination)
+  - how might one use nix in ~JPMC's~ infrastructure?
+** Main componenets
+   - Hydra caching
+   - Dependency management
+   - Ease of use
+     - nix-shell
+   - Security
+** Caching build farm or cachix
+   [[file:./images/screenshot-10.png]]
+   [[file:./images/screenshot-11.png]]
+* references
+  - [HTML] Nix: A Safe and Policy-Free System for Software Deployment.
+    - E Dolstra, M De Jonge, E Visser - usenix.org
+    - https://nixos.org/~eelco/pubs/nspfssd-lisa2004-final.pdf
+  - [PDF] A Purely Functional Linux Distribution - NixOS
+    - E Dolstra
+    - https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf
+  - Hydra - NixOS
+    - https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf
+
+
