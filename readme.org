@@ -1,4 +1,5 @@
 #+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js
+#+LATEX_HEADER: \usepackage[margin=1cm]{geometry}
 #+OPTIONS: reveal_mathjax:t
 #+TITLE: Functional Programming: Real World Performance, Nix and Warp Server
 * Who am I? Introduction to myself
