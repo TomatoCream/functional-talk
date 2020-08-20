@@ -1,6 +1,6 @@
-% Created 2019-08-04 Sun 16:14
+% Created 2020-08-20 Thu 15:50
 % Intended LaTeX compiler: pdflatex
-\documentclass[11pt]{article}
+\documentclass[presentation]{beamer}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
@@ -15,27 +15,29 @@
 \usepackage{capt-of}
 \usepackage{hyperref}
 \usepackage[margin=1cm]{geometry}
-\author{Wong Ding Feng}
+\usetheme{default}
+\author{John Doe}
 \date{\today}
 \title{Functional Programming: Real World Performance, Nix and Warp Server}
 \hypersetup{
- pdfauthor={Wong Ding Feng},
+ pdfauthor={John Doe},
  pdftitle={Functional Programming: Real World Performance, Nix and Warp Server},
  pdfkeywords={},
  pdfsubject={},
- pdfcreator={Emacs 26.2 (Org mode 9.2.2)}, 
+ pdfcreator={Emacs 26.3 (Org mode 9.4)}, 
  pdflang={English}}
 \begin{document}
 
 \maketitle
+\begin{frame}{Outline}
 \tableofcontents
+\end{frame}
 
-\section{Who am I? Introduction to myself}
-\label{sec:orgea5e087}
+\begin{frame}[label={sec:org583bd86},fragile]{How Familiar is everyone with FP}
+ \begin{block}{Disclaimer, not an expert}
 \begin{itemize}
-\item Follow me on github!
-\url{https://github.com/TomatoCream}
-\item Linux user for 5 years now
+\item Logical fallacies will be used, not too fond of this but ¯$\backslash$\textsubscript{(ツ)}\_/¯.
+\item Linux user for 7 years now
 \begin{itemize}
 \item Ubuntu
 \item Proxmox
@@ -43,46 +45,96 @@
 \item Centos (server management)
 \end{itemize}
 \end{itemize}
-\subsection{My interests}
-\label{sec:org6d42dff}
+\end{block}
+\begin{block}{Choose some project}
+\url{https://github.com/search?q=filename\%3Ashell.nix\&type=Code}
+\end{block}
+\begin{block}{Goals}
 \begin{itemize}
-\item AI, ML
-\item Functional programming and abstraction (what the hell is so good about this?)
-\item philosophy
+\item Functional Programming \alert{Principles} (not only languages)
+\item Academic mental exercise (hope not too boring):D
 \begin{itemize}
-\item occam's razor
+\item not nessasarily useful
+\item exposure to a \alert{what if?} world
 \end{itemize}
-\end{itemize}
-\subsection{For whom is this talk for?}
-\label{sec:org41cfc06}
+\item No free lunch theorem
 \begin{itemize}
-\item Linux users! Sorry windows users
-\begin{itemize}
-\item But not really (departs away from a unix way of doing things)
+\item PS: you get some free snacks with FP
 \end{itemize}
-\item Show you what functional programming can do?
-\begin{itemize}
-\item purity?
-\item referential transparency?
+\item confidence
 \end{itemize}
+\end{block}
+\begin{block}{For whom is this talk for?}
+\begin{itemize}
+\item A rare case where FP's abilities can be shown
 \item State management
 \item DevOps
 \item Images, Docker, VM, Clusters
-\item I will give you a feel of \texttt{Nix} not the nitty gritty details
+\item give you a feel of \texttt{Nix}
 \end{itemize}
-\section{The big problem, package manager wars!}
-\label{sec:org0bd2b5c}
-\begin{itemize}
-\item What is the best package manager?
-\item Has anyone ever used some sort of package management system?
-\end{itemize}
-\subsection{slant.co's opinions}
-\label{sec:org415e91b}
+\end{block}
+\begin{block}{slant.co's opinions}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-09.png}
 \end{center}
-\subsection{Some modern day package management systems}
-\label{sec:orgd564c57}
+\end{block}
+\begin{block}{Really?}
+\url{https://edolstra.github.io/pubs/nspfssd-lisa2004-final.pdf}
+\url{https://edolstra.github.io/pubs/nixos-icfp2008-submitted.pdf}
+\url{https://edolstra.github.io/pubs/phd-thesis.pdf}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./images/screenshot-12.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./images/screenshot-13.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./images/screenshot-14.png}
+\end{center}
+\end{block}
+\begin{block}{Functional Programming Primer}
+\begin{itemize}
+\item purity no side effects
+\begin{itemize}
+\item whats the point of a program if it cannot change any value?
+\end{itemize}
+\item everything is immutable
+\begin{itemize}
+\item \(x = 1; x = 2\)
+\end{itemize}
+\item lazy
+\item memoize everything
+\item extreme composability
+\item keep as much information in the program as possible
+\begin{itemize}
+\item i.e. not a lot of reduce operations
+\end{itemize}
+\end{itemize}
+\end{block}
+\end{frame}
+\begin{frame}[label={sec:org38cfab4},fragile]{What is the problem?}
+ \begin{itemize}
+\item Modern smart phones vs old phones
+\item What OS has everyone used?
+\begin{itemize}
+\item windows
+\item ubuntu/mac apt-get brew
+\end{itemize}
+\end{itemize}
+\begin{block}{What is the problem?}
+\begin{itemize}
+\item multiple versions
+\item mutability
+\begin{itemize}
+\item mysql-python
+\end{itemize}
+\item not accurate dependency graph
+\item dependency hell
+\end{itemize}
+\end{block}
+\begin{block}{Some modern day package management systems}
 \begin{center}
 \begin{tabular}{ll}
 Package manager & Distributions\\
@@ -93,8 +145,8 @@ pacman & ArchLinux\\
 brew & MacOS\\
 \end{tabular}
 \end{center}
-\subsection{What about sub ecosystems?}
-\label{sec:orgb99cead}
+\end{block}
+\begin{block}{What about sub ecosystems?}
 \begin{center}
 \begin{tabular}{ll}
 Package manager & ???\\
@@ -107,13 +159,13 @@ brew & MacOS\\
 use-package, vim, fish, zsh & \ldots{}\\
 \end{tabular}
 \end{center}
-\subsection{How to make a package manager?}
-\label{sec:org0dbdef6}
+\end{block}
+\begin{block}{How to make a package manager?}
 \begin{itemize}
 \item What are the basic parts that we need?
 \end{itemize}
-\subsection{How to make a package manager?}
-\label{sec:orgcf364f7}
+\end{block}
+\begin{block}{How to make a package manager?}
 \begin{center}
 \begin{tabular}{ll}
 build dependencies & What do I need to build the program?\\
@@ -125,47 +177,47 @@ configurations & What in \texttt{/etc/...} config files\\
 \item essentially think of it as a graph, whenever we upgrade or install a package,
 we are mutating a node on this graph to point to something else.
 \end{itemize}
-\subsubsection{real senario}
-\label{sec:org5b2ff49}
+\begin{block}{real senario}
 \begin{verbatim}
-pkgname=pacman
-pkgver=5.1.0
-_pkgver=1.0.0
-pkgrel=2
-pkgdesc="A library-based package manager with dependency support"
-arch=('i686' 'x86_64')
-url="http://www.archlinux.org/pacman/"
-license=('GPL')
-groups=('base' 'base-devel')
-depends=('bash>=4.2.042-2' 'glibc>=2.17-2' 'libarchive>=3.1.2' 'curl>=7.39.0'
-         'gpgme' 'archlinux-keyring' 'manjaro-keyring' 'pacman-mirrors>=4.1.0')
-checkdepends=('python2' 'fakechroot')
-makedepends=('asciidoc' 'pacman>=5.1')
-optdepends=('haveged: for pacman-init.service')
-provides=('pacman-contrib' 'pacman-init')
-conflicts=('pacman-contrib' 'pacman-init')
-replaces=('pacman-contrib' 'pacman-init')
-backup=(etc/pacman.conf etc/makepkg.conf)
-install=pacman.install
-options=('strip' 'debug')
+  pkgname=pacman
+  pkgver=5.1.0
+  _pkgver=1.0.0
+  pkgrel=2
+  pkgdesc="A library-based package manager with dependency support"
+  arch=('i686' 'x86_64')
+  url="http://www.archlinux.org/pacman/"
+  license=('GPL')
+  groups=('base' 'base-devel')
+  depends=('bash>=4.2.042-2' 'glibc>=2.17-2' 'libarchive>=3.1.2' 'curl>=7.39.0'
+           'gpgme' 'archlinux-keyring' 'manjaro-keyring' 'pacman-mirrors>=4.1.0')
+  checkdepends=('python2' 'fakechroot')
+  makedepends=('asciidoc' 'pacman>=5.1')
+  optdepends=('haveged: for pacman-init.service')
+  provides=('pacman-contrib' 'pacman-init')
+  conflicts=('pacman-contrib' 'pacman-init')
+  replaces=('pacman-contrib' 'pacman-init')
+  backup=(etc/pacman.conf etc/makepkg.conf)
+  install=pacman.install
+  options=('strip' 'debug')
 \end{verbatim}
-\subsection{Problems with modern package management}
-\label{sec:orgb21001e}
+\end{block}
+\end{block}
+\begin{block}{Problems with modern package management}
 \url{https://wiki.debian.org/DontBreakDebian\#Don.27t\_make\_a\_FrankenDebian}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-01.png}
 \end{center}
-\subsection{{\bfseries\sffamily TODO} Why imperative is bad? What is so imperative about installing packages?}
-\label{sec:orgf1a56e9}
-referential transparency
-\subsection{Are you familiar with \texttt{DEPENDENCY HELL}?}
-\label{sec:org6368281}
+\end{block}
+\begin{block}{Why imperative is bad? What is so imperative about installing packages?}
+Mutation
+\end{block}
+\begin{block}{Are you familiar with \texttt{DEPENDENCY HELL}?}
 \begin{itemize}
 \item \url{https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs\_dependency\_hell\_visualized\_for\_the\_first/?utm\_source=share\&utm\_medium=web2x}
 \item \url{https://github.com/vector-im/riot-web/network/dependencies}
 \end{itemize}
-\subsection{All types of "DEPENDENCY HELL"}
-\label{sec:org474bce2}
+\end{block}
+\begin{block}{All types of ``DEPENDENCY HELL''}
 \url{https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png}
 \begin{itemize}
 \item \{ DLL, dependency, npm, cabal \} hell, different names for the same demon
@@ -179,8 +231,8 @@ referential transparency
 \item set of stable packages like \texttt{Debian} or \texttt{haskell stack snapshots}
 \end{itemize}
 \end{itemize}
-\subsection{Not Atomic 01}
-\label{sec:org321eebf}
+\end{block}
+\begin{block}{Not Atomic 01}
 \begin{itemize}
 \item kill upgrades half way
 \begin{itemize}
@@ -189,21 +241,21 @@ referential transparency
 \end{itemize}
 \end{itemize}
 \begin{verbatim}
-COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
-dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
+   COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+   dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
 \end{verbatim}
-\subsection{Not Atomic 02}
-\label{sec:org9ccc2bd}
+\end{block}
+\begin{block}{Not Atomic 02}
 \begin{itemize}
 \item can be fixed but kinda troublesome.
 \end{itemize}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-02.png}
 \end{center}
-\subsection{Whats bad about imperative summary?}
-\label{sec:org9373028}
+\end{block}
+\begin{block}{Whats bad about imperative summary?}
 \begin{itemize}
-\item No referential transparency
+\item No Variability
 \begin{itemize}
 \item cannot point to older versions of the same thing
 \end{itemize}
@@ -219,15 +271,15 @@ dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
 These problems are really similar to the problems with imperative languages!
 like \texttt{JAVA} and people have already made solutions for them like how \texttt{Haskell}
 does. We could learn a thing or two from them.
-\section{What it should/could/would have been?}
-\label{sec:orgdaded6e}
-\begin{itemize}
+\end{block}
+\end{frame}
+\begin{frame}[label={sec:org72632d2},fragile]{What it should/could/would have been?}
+ \begin{itemize}
 \item Imagine now that we implemented all the things of a functional programming
 language to create a functional package management system?
 \item What can we do with this?
 \end{itemize}
-\subsection{GUIX vs Nix}
-\label{sec:orga87bab6}
+\begin{block}{GUIX vs Nix}
 \begin{itemize}
 \item \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-04.png}
@@ -236,12 +288,12 @@ language to create a functional package management system?
 \includegraphics[width=.9\linewidth]{./images/screenshot-03.png}
 \end{center}
 \end{itemize}
-\subsection{Introducing Nix Package Management}
-\label{sec:org0bd899b}
+\end{block}
+\begin{block}{Introducing Nix Package Management}
 \begin{itemize}
 \item solves all of the problems above
 \begin{itemize}
-\item No referential transparency
+\item Can point to different versions of the same thing
 \begin{itemize}
 \item cannot point to older versions of the same thing
 \end{itemize}
@@ -252,81 +304,79 @@ language to create a functional package management system?
 \end{itemize}
 \end{itemize}
 \end{itemize}
-\subsection{Main mechanism}
-\label{sec:org3180dbb}
-\begin{itemize}
-\item referential transparency
+\end{block}
+\begin{block}{Main mechanism}
 \begin{itemize}
 \item install everything in path \texttt{/nix/store/\{hash\}-name}
 \item via \texttt{symlinking}
 \end{itemize}
-\end{itemize}
-\subsection{What you get for free with this mechanism?}
-\label{sec:org93e2cf7}
+\end{block}
+\begin{block}{What you get for free with this mechanism?}
 \begin{itemize}
 \item no \texttt{sudo}
 \item easy revert and roll back
 \item select specific version
 \item 2 different version can run at the same time
-\item same \textbf{development} environment as the \textbf{runtime} environment!
+\item same \alert{development} environment as the \alert{runtime} environment!
 \begin{itemize}
 \item nix-shell
 \end{itemize}
 \end{itemize}
-\subsubsection{no \texttt{sudo}, where is my \texttt{sudo}?}
-\label{sec:orgf48159e}
+\begin{block}{no \texttt{sudo}, where is my \texttt{sudo}?}
 \begin{itemize}
 \item linux was developed as a \texttt{time sharing} system
 \item many users were expected to share a single computer.
 \item thus to manage conflicts, a \texttt{super user}, \texttt{root} was required to
 install and manage packages
+\end{itemize}
 \begin{verbatim}
 nix-env -iA nixos.figlet
 \end{verbatim}
-\end{itemize}
-\subsubsection{easy revert, rollback}
-\label{sec:orgf1596da}
+\end{block}
+
+\begin{block}{easy revert, rollback}
 \begin{verbatim}
-figlet "I am here!"
+      figlet "I am here!"
 \end{verbatim}
 \begin{verbatim}
-nix-env --rollback
+      nix-env --rollback
 \end{verbatim}
 \begin{verbatim}
-figlet "are you still here?"
+      figlet "are you still here?"
 \end{verbatim}
-\subsubsection{Select specific version}
-\label{sec:orgff973a3}
+\end{block}
+\begin{block}{Select specific version}
 \begin{verbatim}
-cd ~/projects/nix-config/
-git checkout ??
-nix-env -f ~/projects/nix-config/ -iA screenfetch
+      cd ~/projects/nix-config/
+      git checkout ??
+      nix-env -f ~/projects/nix-config/ -iA screenfetch
 \end{verbatim}
 screenfetch 2016 vs current
-\subsubsection{Installing and running 2 version of same software}
-\label{sec:org75b7672}
+\end{block}
+\begin{block}{Installing and running 2 version of same software}
 \begin{verbatim}
-stack --version
-su
-stack --version
+      stack --version
+      su
+      stack --version
 \end{verbatim}
-\subsubsection{Same development environment and runtime environment}
-\label{sec:orgbcda1af}
+\end{block}
+\begin{block}{Same development environment and runtime environment}
 \begin{itemize}
 \item I am not an electrical engineer or something but I program my
 own keyboard. So I need some sort of firmware flasher. like
 \texttt{dfuprogrammer} I dont need it on my system.
 \end{itemize}
 \begin{verbatim}
-cd ~/projects/qmk_firmware/
-make
-dfuprogrammer
-nix-shell
-make
-dfuprogrammer
+      cd ~/projects/qmk_firmware/
+      make
+      dfuprogrammer
+      nix-shell
+      make
+      dfuprogrammer
 \end{verbatim}
-\subsection{Going all the way, NixOS}
-\label{sec:org8030be9}
+\end{block}
+\end{block}
+\begin{block}{Going all the way, NixOS}
 \begin{itemize}
 \item whole system management via Nix and thus NixOS
 \begin{itemize}
@@ -337,11 +387,10 @@ my older generations
 \end{itemize}
 \end{itemize}
 \begin{verbatim}
-df -h /
-nix-collect-garbage --delete-older-than 10 --dry-run
+     df -h /
+     nix-collect-garbage --delete-older-than 10 --dry-run
 \end{verbatim}
-\subsubsection{NixOS}
-\label{sec:org899d666}
+\begin{block}{NixOS}
 \begin{itemize}
 \item show \url{file:///home/df/nix-config/configuration.nix}
 \item python package management \url{file:///home/df/nix-config/configuration.nix}
@@ -363,39 +412,40 @@ nix-collect-garbage --delete-older-than 10 --dry-run
 \end{itemize}
 \item filesystems \url{file:///etc/nixos/hardware-configuration.nix}
 \end{itemize}
-\subsubsection{docker}
-\label{sec:orgeaac453}
+\end{block}
+\begin{block}{docker}
 \url{https://nixos.wiki/wiki/Docker}
 \begin{verbatim}
-virtualisation.docker.enable = true;
-users.users.<myuser>.extraGroups = [ "docker" ];
+      virtualisation.docker.enable = true;
+      users.users.<myuser>.extraGroups = [ "docker" ];
 \end{verbatim}
 \begin{verbatim}
-nix-build '<nixpkgs>' -A dockerTools.examples.redis
-docker load < result
+      nix-build '<nixpkgs>' -A dockerTools.examples.redis
+      docker load < result
 \end{verbatim}
 \url{https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix}
-\subsubsection{easy cd/dvd}
-\label{sec:org6b8560b}
+\end{block}
+\begin{block}{easy cd/dvd}
 \begin{verbatim}
-cd ~/projects/nixpkgs
-nix-build -A config.system.build.isoImage -I nixos-config=modules/installer/cd-dvd/installation-cd-minimal.nix default.nix
+      cd ~/projects/nixpkgs
+      nix-build -A config.system.build.isoImage -I nixos-config=modules/installer/cd-dvd/installation-cd-minimal.nix default.nix
 \end{verbatim}
-\subsubsection{easy vm}
-\label{sec:orgbc432d5}
+\end{block}
+\begin{block}{easy vm}
 \begin{verbatim}
-cd ./nixops
-nixops create -d simple02 network.nix
-nixops deploy -d simple02
+      cd ./nixops
+      nixops create -d simple02 network.nix
+      nixops deploy -d simple02
 \end{verbatim}
 \begin{verbatim}
-deployment.targetEnv = "ec2";
-deployment.region = "eu-west-1";
+      deployment.targetEnv = "ec2";
+      deployment.region = "eu-west-1";
 \end{verbatim}
-\section{How does nix actually work?}
-\label{sec:org471266e}
-\subsection{Nix expressions}
-\label{sec:org8ad168e}
+\end{block}
+\end{block}
+\end{frame}
+\begin{frame}[label={sec:org6d29320},fragile]{How does nix actually work?}
+ \begin{block}{Nix expressions}
 \begin{itemize}
 \item functional expressions, not general purpose please do not program
 things with it
@@ -404,8 +454,8 @@ things with it
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-05.png}
 \end{center}
-\subsection{Language features}
-\label{sec:org726a984}
+\end{block}
+\begin{block}{Language features}
 \begin{itemize}
 \item Nix expressions
 \begin{itemize}
@@ -414,8 +464,8 @@ things with it
 \item pure
 \end{itemize}
 \end{itemize}
-\subsection{The main point}
-\label{sec:orgc8a7d80}
+\end{block}
+\begin{block}{The main point}
 \begin{itemize}
 \item Nix expressions are here to describe a graph of build actions
 called \texttt{derivations}
@@ -425,28 +475,28 @@ called \texttt{derivations}
 \item set of dependencies
 \end{itemize}
 \end{itemize}
-\subsection{Example: Xmonad}
-\label{sec:orgf84f6cb}
+\end{block}
+\begin{block}{Example: Xmonad}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-06.png}
 \end{center}
-\subsection{Example: Xmonad}
-\label{sec:org094a504}
+\end{block}
+\begin{block}{Example: Xmonad}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-07.png}
 \end{center}
-\subsection{Main mechanism}
-\label{sec:org67536a4}
+\end{block}
+\begin{block}{Main mechanism}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-08.png}
 \end{center}
-\section{Nix as infrastructure (imagination)}
-\label{sec:orgd8dbad9}
-\begin{itemize}
+\end{block}
+\end{frame}
+\begin{frame}[label={sec:orgf2c370a},fragile]{Nix as infrastructure (imagination)}
+ \begin{itemize}
 \item how might one use nix in \texttt{JPMC's} infrastructure?
 \end{itemize}
-\subsection{Main componenets}
-\label{sec:orga5af4ba}
+\begin{block}{Main componenets}
 \begin{itemize}
 \item Hydra caching
 \item Dependency management
@@ -456,16 +506,17 @@ called \texttt{derivations}
 \end{itemize}
 \item Security
 \end{itemize}
-\subsection{Caching build farm or cachix}
-\label{sec:org39ace42}
+\end{block}
+\begin{block}{Caching build farm or cachix}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-10.png}
 \end{center}
 \begin{center}
 \includegraphics[width=.9\linewidth]{./images/screenshot-11.png}
 \end{center}
-\section{references}
-\label{sec:org99d1ab5}
+\end{block}
+\end{frame}
+\begin{frame}[label={sec:orgd1c54e1}]{references}
 \begin{itemize}
 \item\relax [HTML] Nix: A Safe and Policy-Free System for Software Deployment.
 \begin{itemize}
@@ -482,4 +533,72 @@ called \texttt{derivations}
 \item \url{https://nixos.org/\~eelco/pubs/hydra-scp-submitted.pdf}
 \end{itemize}
 \end{itemize}
+\end{frame}
+\begin{frame}[label={sec:org785492e},fragile]{Part 2 Warp optimization}
+ \begin{center}
+\includegraphics[width=.9\linewidth]{Part_2_Warp_optimization/2020-08-20_14-51-11_screenshot.png}
+\end{center}
+
+\url{https://www.aosabook.org/en/posa/warp.html}
+\begin{block}{2013 Results}
+\begin{center}
+\includegraphics[width=.9\linewidth]{Part_2_warp/2020-08-20_14-50-23_screenshot.png}
+\end{center}
+\end{block}
+\begin{block}{Overall Architecture}
+\begin{center}
+\includegraphics[width=.9\linewidth]{Part_2_Warp_optimization/2020-08-20_15-46-34_screenshot.png}
+\end{center}
+\end{block}
+\begin{block}{Type and life cycle}
+\begin{verbatim}
+type Application = Request -> ResourceT IO Response
+\end{verbatim}
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{Part_2_Warp_optimization/2020-08-20_15-47-23_screenshot.png}
+\end{center}
+\end{block}
+\begin{block}{Threads}
+user threads
+\end{block}
+\begin{block}{As little syscalls as possible}
+\begin{itemize}
+\item use strace to check what nginx was doing
+\item found \texttt{accept4}
+\end{itemize}
+\end{block}
+\begin{block}{Profiling}
+\begin{itemize}
+\item the date string format is taking up most of the cpu time
+\item so they made a cache for that
+\item btw haskell by default memoised every thing
+\end{itemize}
+\end{block}
+\begin{block}{Avoiding locks}
+they used compare and swap instead
+\end{block}
+
+\begin{block}{Using proper datastructure}
+\begin{itemize}
+\item \texttt{String} in haskell is actually a \texttt{List} of \texttt{Char}
+\begin{itemize}
+\item \texttt{List} as in \texttt{Linked-lists}
+\end{itemize}
+\item \texttt{ByteString} so you can do \texttt{splicing} like \texttt{GO}.
+\begin{itemize}
+\item implemented in low level \texttt{C}
+\end{itemize}
+\item Handroll several components to avoid overhead like the parsing library
+\end{itemize}
+\end{block}
+\begin{block}{ByteString splicing}
+Everything in haskell by default is immutable so multiple threads can read it at the same time with no issues.
+
+Updates are done with compare and swap.
+\begin{center}
+\includegraphics[width=.9\linewidth]{ByteString_splicing/2020-08-20_15-39-39_screenshot.png}
+\end{center}
+\end{block}
+\end{frame}
 \end{document}

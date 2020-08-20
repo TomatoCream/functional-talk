@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head>
-<!-- 2019-08-04 Sun 16:15 -->
-<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Functional Programming: Real World Performance, Nix and Warp Server</title>
-<meta name="generator" content="Org mode" />
-<meta name="author" content="Wong Ding Feng" />
-<style type="text/css">
- <!--/*--><![CDATA[/*><!--*/
+  <head>
+    <!-- 2020-08-20 Thu 15:49 -->
+    <meta http-equiv="Content-Type"
+    content="text/html;charset=utf-8" />
+    <meta name="viewport"
+    content="width=device-width, initial-scale=1" />
+    <title>Functional Programming: Real World Performance, Nix and
+    Warp Server</title>
+    <meta name="generator" content="Org mode" />
+    <meta name="author" content="John Doe" />
+    <style type="text/css">
+    <!--/*-->
+<![CDATA[/*><!--*/
   .title  { text-align: center;
              margin-bottom: .2em; }
   .subtitle { text-align: center;
@@ -191,833 +195,1492 @@
   .org-info-js_search-highlight
     { background-color: #ffff00; color: #000000; font-weight: bold; }
   .org-svg { width: 90%; }
-  /*]]>*/-->
-</style>
-<script type="text/javascript">
-/*
-@licstart  The following is the entire license notice for the
-JavaScript code in this tag.
-
-Copyright (C) 2012-2019 Free Software Foundation, Inc.
-
-The JavaScript code in this tag is free software: you can
-redistribute it and/or modify it under the terms of the GNU
-General Public License (GNU GPL) as published by the Free Software
-Foundation, either version 3 of the License, or (at your option)
-any later version.  The code is distributed WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
-
-As additional permission under GNU GPL version 3 section 7, you
-may distribute non-source (e.g., minimized or compacted) forms of
-that code without the copy of the GNU GPL normally required by
-section 4, provided you include this license notice and a URL
-through which recipients can access the Corresponding Source.
-
-
-@licend  The above is the entire license notice
-for the JavaScript code in this tag.
-*/
-<!--/*--><![CDATA[/*><!--*/
- function CodeHighlightOn(elem, id)
- {
-   var target = document.getElementById(id);
-   if(null != target) {
-     elem.cacheClassElem = elem.className;
-     elem.cacheClassTarget = target.className;
-     target.className = "code-highlighted";
-     elem.className   = "code-highlighted";
-   }
- }
- function CodeHighlightOff(elem, id)
- {
-   var target = document.getElementById(id);
-   if(elem.cacheClassElem)
-     elem.className = elem.cacheClassElem;
-   if(elem.cacheClassTarget)
-     target.className = elem.cacheClassTarget;
- }
-/*]]>*///-->
-</script>
-</head>
-<body>
-<div id="content">
-<h1 class="title">Functional Programming: Real World Performance, Nix and Warp Server</h1>
-<div id="table-of-contents">
-<h2>Table of Contents</h2>
-<div id="text-table-of-contents">
-<ul>
-<li><a href="#org2c95586">1. Who am I? Introduction to myself</a>
-<ul>
-<li><a href="#org4f43842">1.1. My interests</a></li>
-<li><a href="#orgbd9c96d">1.2. For whom is this talk for?</a></li>
-</ul>
-</li>
-<li><a href="#org0292a62">2. The big problem, package manager wars!</a>
-<ul>
-<li><a href="#org9b90c30">2.1. slant.co's opinions</a></li>
-<li><a href="#org5041930">2.2. Some modern day package management systems</a></li>
-<li><a href="#orgd541ca5">2.3. What about sub ecosystems?</a></li>
-<li><a href="#org90f2d97">2.4. How to make a package manager?</a></li>
-<li><a href="#org42b5126">2.5. How to make a package manager?</a>
-<ul>
-<li><a href="#org5378259">2.5.1. real senario</a></li>
-</ul>
-</li>
-<li><a href="#org6e43064">2.6. Problems with modern package management</a></li>
-<li><a href="#org086fd75">2.7. <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</a></li>
-<li><a href="#org1963e6f">2.8. Are you familiar with <code>DEPENDENCY HELL</code>?</a></li>
-<li><a href="#org372590f">2.9. All types of "DEPENDENCY HELL"</a></li>
-<li><a href="#orgd1fbefe">2.10. Not Atomic 01</a></li>
-<li><a href="#org076f574">2.11. Not Atomic 02</a></li>
-<li><a href="#org4fecca5">2.12. Whats bad about imperative summary?</a></li>
-</ul>
-</li>
-<li><a href="#orgcdec5b9">3. What it should/could/would have been?</a>
-<ul>
-<li><a href="#org4b83cdf">3.1. GUIX vs Nix</a></li>
-<li><a href="#org1eccb99">3.2. Introducing Nix Package Management</a></li>
-<li><a href="#orgae786d8">3.3. Main mechanism</a></li>
-<li><a href="#orgb69c29a">3.4. What you get for free with this mechanism?</a>
-<ul>
-<li><a href="#orgade6e39">3.4.1. no <code>sudo</code>, where is my <code>sudo</code>?</a></li>
-<li><a href="#org00767fc">3.4.2. easy revert, rollback</a></li>
-<li><a href="#org8e6992b">3.4.3. Select specific version</a></li>
-<li><a href="#org71abbba">3.4.4. Installing and running 2 version of same software</a></li>
-<li><a href="#orgbf33f61">3.4.5. Same development environment and runtime environment</a></li>
-</ul>
-</li>
-<li><a href="#org729eb00">3.5. Going all the way, NixOS</a>
-<ul>
-<li><a href="#orgb45c29d">3.5.1. NixOS</a></li>
-<li><a href="#org9f36549">3.5.2. docker</a></li>
-<li><a href="#org0e4c28c">3.5.3. easy cd/dvd</a></li>
-<li><a href="#org7b148ae">3.5.4. easy vm</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#org77648d7">4. How does nix actually work?</a>
-<ul>
-<li><a href="#orgc5518b5">4.1. Nix expressions</a></li>
-<li><a href="#orga60edc0">4.2. Language features</a></li>
-<li><a href="#orgc6c8051">4.3. The main point</a></li>
-<li><a href="#org6799cbf">4.4. Example: Xmonad</a></li>
-<li><a href="#orge24a214">4.5. Example: Xmonad</a></li>
-<li><a href="#org8987052">4.6. Main mechanism</a></li>
-</ul>
-</li>
-<li><a href="#org95a08ac">5. Nix as infrastructure (imagination)</a>
-<ul>
-<li><a href="#org7fe61c7">5.1. Main componenets</a></li>
-<li><a href="#orgf131661">5.2. Caching build farm or cachix</a></li>
-</ul>
-</li>
-<li><a href="#org6f407cc">6. references</a></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org2c95586" class="outline-2">
-<h2 id="org2c95586"><span class="section-number-2">1</span> Who am I? Introduction to myself</h2>
-<div class="outline-text-2" id="text-1">
-<ul class="org-ul">
-<li>Follow me on github!
-<a href="https://github.com/TomatoCream">https://github.com/TomatoCream</a></li>
-<li>Linux user for 5 years now
-<ul class="org-ul">
-<li>Ubuntu</li>
-<li>Proxmox</li>
-<li>ArchLinux</li>
-<li>Centos (server management)</li>
-</ul></li>
-</ul>
-</div>
-<div id="outline-container-org4f43842" class="outline-3">
-<h3 id="org4f43842"><span class="section-number-3">1.1</span> My interests</h3>
-<div class="outline-text-3" id="text-1-1">
-<ul class="org-ul">
-<li>AI, ML</li>
-<li>Functional programming and abstraction (what the hell is so good about this?)</li>
-<li>philosophy
-<ul class="org-ul">
-<li>occam's razor</li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgbd9c96d" class="outline-3">
-<h3 id="orgbd9c96d"><span class="section-number-3">1.2</span> For whom is this talk for?</h3>
-<div class="outline-text-3" id="text-1-2">
-<ul class="org-ul">
-<li>Linux users! Sorry windows users
-<ul class="org-ul">
-<li>But not really (departs away from a unix way of doing things)</li>
-</ul></li>
-<li>Show you what functional programming can do?
-<ul class="org-ul">
-<li>purity?</li>
-<li>referential transparency?</li>
-</ul></li>
-<li>State management</li>
-<li>DevOps</li>
-<li>Images, Docker, VM, Clusters</li>
-<li>I will give you a feel of <code>Nix</code> not the nitty gritty details</li>
-</ul>
-</div>
-</div>
-</div>
-<div id="outline-container-org0292a62" class="outline-2">
-<h2 id="org0292a62"><span class="section-number-2">2</span> The big problem, package manager wars!</h2>
-<div class="outline-text-2" id="text-2">
-<ul class="org-ul">
-<li>What is the best package manager?</li>
-<li>Has anyone ever used some sort of package management system?</li>
-</ul>
-</div>
-<div id="outline-container-org9b90c30" class="outline-3">
-<h3 id="org9b90c30"><span class="section-number-3">2.1</span> slant.co's opinions</h3>
-<div class="outline-text-3" id="text-2-1">
-
-<div class="figure">
-<p><img src="./images/screenshot-09.png" alt="screenshot-09.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-org5041930" class="outline-3">
-<h3 id="org5041930"><span class="section-number-3">2.2</span> Some modern day package management systems</h3>
-<div class="outline-text-3" id="text-2-2">
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">Package manager</th>
-<th scope="col" class="org-left">Distributions</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">apt, apt-get</td>
-<td class="org-left">Debian, Ubuntu</td>
-</tr>
-
-<tr>
-<td class="org-left">rpm, yum</td>
-<td class="org-left">Redhat, Centos</td>
-</tr>
-
-<tr>
-<td class="org-left">pacman</td>
-<td class="org-left">ArchLinux</td>
-</tr>
-
-<tr>
-<td class="org-left">brew</td>
-<td class="org-left">MacOS</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="outline-container-orgd541ca5" class="outline-3">
-<h3 id="orgd541ca5"><span class="section-number-3">2.3</span> What about sub ecosystems?</h3>
-<div class="outline-text-3" id="text-2-3">
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<thead>
-<tr>
-<th scope="col" class="org-left">Package manager</th>
-<th scope="col" class="org-left">???</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="org-left">pip, virtualenv, pipenv</td>
-<td class="org-left">Python2,3(???)</td>
-</tr>
-
-<tr>
-<td class="org-left">npm, yarn</td>
-<td class="org-left">Nodejs</td>
-</tr>
-
-<tr>
-<td class="org-left">cabal, stack, hackage</td>
-<td class="org-left">Haskell :)</td>
-</tr>
-
-<tr>
-<td class="org-left">go?</td>
-<td class="org-left">go?</td>
-</tr>
-
-<tr>
-<td class="org-left">brew</td>
-<td class="org-left">MacOS</td>
-</tr>
-
-<tr>
-<td class="org-left">use-package, vim, fish, zsh</td>
-<td class="org-left">&#x2026;</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<div id="outline-container-org90f2d97" class="outline-3">
-<h3 id="org90f2d97"><span class="section-number-3">2.4</span> How to make a package manager?</h3>
-<div class="outline-text-3" id="text-2-4">
-<ul class="org-ul">
-<li>What are the basic parts that we need?</li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org42b5126" class="outline-3">
-<h3 id="org42b5126"><span class="section-number-3">2.5</span> How to make a package manager?</h3>
-<div class="outline-text-3" id="text-2-5">
-<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
-
-
-<colgroup>
-<col  class="org-left" />
-
-<col  class="org-left" />
-</colgroup>
-<tbody>
-<tr>
-<td class="org-left">build dependencies</td>
-<td class="org-left">What do I need to build the program?</td>
-</tr>
-
-<tr>
-<td class="org-left">runtime dependencies</td>
-<td class="org-left">What <code>.so</code> shared objects do I need?</td>
-</tr>
-
-<tr>
-<td class="org-left">configurations</td>
-<td class="org-left">What in <code>/etc/...</code> config files</td>
-</tr>
-</tbody>
-</table>
-<ul class="org-ul">
-<li>essentially think of it as a graph, whenever we upgrade or install a package,
-we are mutating a node on this graph to point to something else.</li>
-</ul>
-</div>
-<div id="outline-container-org5378259" class="outline-4">
-<h4 id="org5378259"><span class="section-number-4">2.5.1</span> real senario</h4>
-<div class="outline-text-4" id="text-2-5-1">
-<div class="org-src-container">
-<pre class="src src-sh"><span style="color: #ff8700;">pkgname</span>=pacman
-<span style="color: #ff8700;">pkgver</span>=5.1.0
-<span style="color: #ff8700;">_pkgver</span>=1.0.0
-<span style="color: #ff8700;">pkgrel</span>=2
-<span style="color: #ff8700;">pkgdesc</span>=<span style="color: #ff4ea3;">"A library-based package manager with dependency support"</span>
-<span style="color: #ff8700;">arch</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'i686'</span> <span style="color: #ff4ea3;">'x86_64'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">url</span>=<span style="color: #ff4ea3;">"http://www.archlinux.org/pacman/"</span>
-<span style="color: #ff8700;">license</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'GPL'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">groups</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'base'</span> <span style="color: #ff4ea3;">'base-devel'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">depends</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'bash&gt;=4.2.042-2'</span> <span style="color: #ff4ea3;">'glibc&gt;=2.17-2'</span> <span style="color: #ff4ea3;">'libarchive&gt;=3.1.2'</span> <span style="color: #ff4ea3;">'curl&gt;=7.39.0'</span>
-         <span style="color: #ff4ea3;">'gpgme'</span> <span style="color: #ff4ea3;">'archlinux-keyring'</span> <span style="color: #ff4ea3;">'manjaro-keyring'</span> <span style="color: #ff4ea3;">'pacman-mirrors&gt;=4.1.0'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">checkdepends</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'python2'</span> <span style="color: #ff4ea3;">'fakechroot'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">makedepends</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'asciidoc'</span> <span style="color: #ff4ea3;">'pacman&gt;=5.1'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">optdepends</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'haveged: for pacman-init.service'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">provides</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'pacman-contrib'</span> <span style="color: #ff4ea3;">'pacman-init'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">conflicts</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'pacman-contrib'</span> <span style="color: #ff4ea3;">'pacman-init'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">replaces</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'pacman-contrib'</span> <span style="color: #ff4ea3;">'pacman-init'</span><span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">backup</span>=<span style="color: #dd0000; font-weight: bold;">(</span>etc/pacman.conf etc/makepkg.conf<span style="color: #dd0000; font-weight: bold;">)</span>
-<span style="color: #ff8700;">install</span>=pacman.install
-<span style="color: #ff8700;">options</span>=<span style="color: #dd0000; font-weight: bold;">(</span><span style="color: #ff4ea3;">'strip'</span> <span style="color: #ff4ea3;">'debug'</span><span style="color: #dd0000; font-weight: bold;">)</span>
+  /*]]>
+*/--&gt;</style>
+    <script type="text/javascript">// @license
+    magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&amp;dn=gpl-3.0.txt
+    GPL-v3-or-Later 
+    <!--/*-->
+<![CDATA[/*><!--*/
+     function CodeHighlightOn(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(null != target) {
+         elem.cacheClassElem = elem.className;
+         elem.cacheClassTarget = target.className;
+         target.className = "code-highlighted";
+         elem.className   = "code-highlighted";
+       }
+     }
+     function CodeHighlightOff(elem, id)
+     {
+       var target = document.getElementById(id);
+       if(elem.cacheClassElem)
+         elem.className = elem.cacheClassElem;
+       if(elem.cacheClassTarget)
+         target.className = elem.cacheClassTarget;
+     }
+    /*]]>
+*///--&gt; // @license-end</script>
+    <script type="text/x-mathjax-config">MathJax.Hub.Config({
+    displayAlign: "center", displayIndent: "0em", "HTML-CSS": {
+    scale: 100, linebreaks: { automatic: "false" }, webFont: "TeX"
+    }, SVG: {scale: 100, linebreaks: { automatic: "false" }, font:
+    "TeX"}, NativeMML: {scale: 100}, TeX: { equationNumbers:
+    {autoNumber: "AMS"}, MultLineWidth: "85%", TagSide: "right",
+    TagIndent: ".8em" } });</script>
+    <script type="text/javascript"
+    src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML">
+    </script>
+  </head>
+  <body>
+    <div id="content">
+      <h1 class="title">Functional Programming: Real World
+      Performance, Nix and Warp Server</h1>
+      <div id="table-of-contents">
+        <h2>Table of Contents</h2>
+        <div id="text-table-of-contents">
+          <ul>
+            <li>
+              <a href="#org706b22c">1. How Familiar is everyone
+              with FP</a>
+              <ul>
+                <li>
+                  <a href="#orge41cb39">1.1. Disclaimer, not an
+                  expert</a>
+                </li>
+                <li>
+                  <a href="#org4758c7f">1.2. Choose some
+                  project</a>
+                </li>
+                <li>
+                  <a href="#orgdf217ea">1.3. Goals</a>
+                </li>
+                <li>
+                  <a href="#org554db11">1.4. For whom is this talk
+                  for?</a>
+                </li>
+                <li>
+                  <a href="#org842a7d3">1.5. slant.co’s
+                  opinions</a>
+                </li>
+                <li>
+                  <a href="#orgaf09fab">1.6. Really?</a>
+                </li>
+                <li>
+                  <a href="#org434d0bf">1.7. Functional Programming
+                  Primer</a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#orge794df5">2. What is the problem?</a>
+              <ul>
+                <li>
+                  <a href="#org5242f77">2.1. What is the
+                  problem?</a>
+                </li>
+                <li>
+                  <a href="#org04f30da">2.2. Some modern day
+                  package management systems</a>
+                </li>
+                <li>
+                  <a href="#org8b76522">2.3. What about sub
+                  ecosystems?</a>
+                </li>
+                <li>
+                  <a href="#org39dcbaa">2.4. How to make a package
+                  manager?</a>
+                </li>
+                <li>
+                  <a href="#org036c35d">2.5. How to make a package
+                  manager?</a>
+                  <ul>
+                    <li>
+                      <a href="#org2b88d40">2.5.1. real senario</a>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <a href="#org3a45c3b">2.6. Problems with modern
+                  package management</a>
+                </li>
+                <li>
+                  <a href="#org3ca2797">2.7. Why imperative is bad?
+                  What is so imperative about installing
+                  packages?</a>
+                </li>
+                <li>
+                  <a href="#org7b16921">2.8. Are you familiar with 
+                  <code>DEPENDENCY HELL</code>?</a>
+                </li>
+                <li>
+                  <a href="#org9c3f2e6">2.9. All types of
+                  “DEPENDENCY HELL”</a>
+                </li>
+                <li>
+                  <a href="#orgba9dbc1">2.10. Not Atomic 01</a>
+                </li>
+                <li>
+                  <a href="#orge5b5556">2.11. Not Atomic 02</a>
+                </li>
+                <li>
+                  <a href="#orgfaab823">2.12. Whats bad about
+                  imperative summary?</a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#org1e51dad">3. What it should/could/would
+              have been?</a>
+              <ul>
+                <li>
+                  <a href="#orgf055651">3.1. GUIX vs Nix</a>
+                </li>
+                <li>
+                  <a href="#orgab2620f">3.2. Introducing Nix
+                  Package Management</a>
+                </li>
+                <li>
+                  <a href="#org96ef57c">3.3. Main mechanism</a>
+                </li>
+                <li>
+                  <a href="#org42dc91d">3.4. What you get for free
+                  with this mechanism?</a>
+                  <ul>
+                    <li>
+                      <a href="#org61e0fde">3.4.1. no 
+                      <code>sudo</code>, where is my 
+                      <code>sudo</code>?</a>
+                    </li>
+                    <li>
+                      <a href="#orgd0f84e5">3.4.2. easy revert,
+                      rollback</a>
+                    </li>
+                    <li>
+                      <a href="#orgb34fa54">3.4.3. Select specific
+                      version</a>
+                    </li>
+                    <li>
+                      <a href="#org581bab3">3.4.4. Installing and
+                      running 2 version of same software</a>
+                    </li>
+                    <li>
+                      <a href="#org2ddacd5">3.4.5. Same development
+                      environment and runtime environment</a>
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <a href="#orgca9f87f">3.5. Going all the way,
+                  NixOS</a>
+                  <ul>
+                    <li>
+                      <a href="#orgc3888e3">3.5.1. NixOS</a>
+                    </li>
+                    <li>
+                      <a href="#orgf8ef624">3.5.2. docker</a>
+                    </li>
+                    <li>
+                      <a href="#org38a13e6">3.5.3. easy cd/dvd</a>
+                    </li>
+                    <li>
+                      <a href="#orgae93c6f">3.5.4. easy vm</a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#org794b25a">4. How does nix actually
+              work?</a>
+              <ul>
+                <li>
+                  <a href="#org5d8ff95">4.1. Nix expressions</a>
+                </li>
+                <li>
+                  <a href="#org03f505a">4.2. Language features</a>
+                </li>
+                <li>
+                  <a href="#org499bd19">4.3. The main point</a>
+                </li>
+                <li>
+                  <a href="#org02660cf">4.4. Example: Xmonad</a>
+                </li>
+                <li>
+                  <a href="#org9152b5c">4.5. Example: Xmonad</a>
+                </li>
+                <li>
+                  <a href="#orge796909">4.6. Main mechanism</a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#org5bae43a">5. Nix as infrastructure
+              (imagination)</a>
+              <ul>
+                <li>
+                  <a href="#org71b5088">5.1. Main componenets</a>
+                </li>
+                <li>
+                  <a href="#org7d447e8">5.2. Caching build farm or
+                  cachix</a>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <a href="#org1a508e6">6. references</a>
+            </li>
+            <li>
+              <a href="#org9815645">7. Part 2 Warp optimization</a>
+              <ul>
+                <li>
+                  <a href="#org2e1e6c1">7.1. 2013 Results</a>
+                </li>
+                <li>
+                  <a href="#org53cb9e0">7.2. Overall
+                  Architecture</a>
+                </li>
+                <li>
+                  <a href="#orga7eb630">7.3. Type and life
+                  cycle</a>
+                </li>
+                <li>
+                  <a href="#org82d43fb">7.4. Threads</a>
+                </li>
+                <li>
+                  <a href="#org8167c95">7.5. As little syscalls as
+                  possible</a>
+                </li>
+                <li>
+                  <a href="#orgfd88559">7.6. Profiling</a>
+                </li>
+                <li>
+                  <a href="#org4559975">7.7. Avoiding locks</a>
+                </li>
+                <li>
+                  <a href="#org3f5bbb4">7.8. Using proper
+                  datastructure</a>
+                </li>
+                <li>
+                  <a href="#orgef5e4e5">7.9. ByteString
+                  splicing</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div id="outline-container-org706b22c" class="outline-2">
+        <h2 id="org706b22c">
+        <span class="section-number-2">1</span>How Familiar is
+        everyone with FP</h2>
+        <div class="outline-text-2" id="text-1"></div>
+        <div id="outline-container-orge41cb39" class="outline-3">
+          <h3 id="orge41cb39">
+          <span class="section-number-3">1.1</span>Disclaimer, not
+          an expert</h3>
+          <div class="outline-text-3" id="text-1-1">
+            <ul class="org-ul">
+              <li>Logical fallacies will be used, not too fond of
+              this but ¯\
+              <sub>(ツ)</sub>_/¯.</li>
+              <li>Linux user for 7 years now 
+              <ul class="org-ul">
+                <li>Ubuntu</li>
+                <li>Proxmox</li>
+                <li>ArchLinux</li>
+                <li>Centos (server management)</li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org4758c7f" class="outline-3">
+          <h3 id="org4758c7f">
+          <span class="section-number-3">1.2</span>Choose some
+          project</h3>
+          <div class="outline-text-3" id="text-1-2">
+            <p>
+              <a href="https://github.com/search?q=filename%3Ashell.nix&amp;type=Code">
+              https://github.com/search?q=filename%3Ashell.nix&amp;type=Code</a>
+            </p>
+          </div>
+        </div>
+        <div id="outline-container-orgdf217ea" class="outline-3">
+          <h3 id="orgdf217ea">
+          <span class="section-number-3">1.3</span>Goals</h3>
+          <div class="outline-text-3" id="text-1-3">
+            <ul class="org-ul">
+              <li>Functional Programming 
+              <b>Principles</b>(not only languages)</li>
+              <li>Academic mental exercise (hope not too boring):D 
+              <ul class="org-ul">
+                <li>not nessasarily useful</li>
+                <li>exposure to a 
+                <b>what if?</b>world</li>
+              </ul></li>
+              <li>No free lunch theorem 
+              <ul class="org-ul">
+                <li>PS: you get some free snacks with FP</li>
+              </ul></li>
+              <li>confidence</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org554db11" class="outline-3">
+          <h3 id="org554db11">
+          <span class="section-number-3">1.4</span>For whom is this
+          talk for?</h3>
+          <div class="outline-text-3" id="text-1-4">
+            <ul class="org-ul">
+              <li>A rare case where FP’s abilities can be
+              shown</li>
+              <li>State management</li>
+              <li>DevOps</li>
+              <li>Images, Docker, VM, Clusters</li>
+              <li>give you a feel of 
+              <code>Nix</code></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org842a7d3" class="outline-3">
+          <h3 id="org842a7d3">
+          <span class="section-number-3">1.5</span>slant.co’s
+          opinions</h3>
+          <div class="outline-text-3" id="text-1-5">
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-09.png"
+                alt="screenshot-09.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orgaf09fab" class="outline-3">
+          <h3 id="orgaf09fab">
+          <span class="section-number-3">1.6</span>Really?</h3>
+          <div class="outline-text-3" id="text-1-6">
+            <p>
+              <a href="https://edolstra.github.io/pubs/nspfssd-lisa2004-final.pdf">
+              https://edolstra.github.io/pubs/nspfssd-lisa2004-final.pdf</a>
+              <a href="https://edolstra.github.io/pubs/nixos-icfp2008-submitted.pdf">
+              https://edolstra.github.io/pubs/nixos-icfp2008-submitted.pdf</a>
+              <a href="https://edolstra.github.io/pubs/phd-thesis.pdf">
+              https://edolstra.github.io/pubs/phd-thesis.pdf</a>
+              <img src="./images/screenshot-12.png"
+              alt="screenshot-12.png" />
+            </p>
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-13.png"
+                alt="screenshot-13.png" />
+              </p>
+            </div>
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-14.png"
+                alt="screenshot-14.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org434d0bf" class="outline-3">
+          <h3 id="org434d0bf">
+          <span class="section-number-3">1.7</span>Functional
+          Programming Primer</h3>
+          <div class="outline-text-3" id="text-1-7">
+            <ul class="org-ul">
+              <li>purity no side effects 
+              <ul class="org-ul">
+                <li>whats the point of a program if it cannot
+                change any value?</li>
+              </ul></li>
+              <li>everything is immutable 
+              <ul class="org-ul">
+                <li>\(x = 1; x = 2\)</li>
+              </ul></li>
+              <li>lazy</li>
+              <li>memoize everything</li>
+              <li>extreme composability</li>
+              <li>keep as much information in the program as
+              possible 
+              <ul class="org-ul">
+                <li>i.e. not a lot of reduce operations</li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="outline-container-orge794df5" class="outline-2">
+        <h2 id="orge794df5">
+        <span class="section-number-2">2</span>What is the
+        problem?</h2>
+        <div class="outline-text-2" id="text-2">
+          <ul class="org-ul">
+            <li>Modern smart phones vs old phones</li>
+            <li>What OS has everyone used? 
+            <ul class="org-ul">
+              <li>windows</li>
+              <li>ubuntu/mac apt-get brew</li>
+            </ul></li>
+          </ul>
+        </div>
+        <div id="outline-container-org5242f77" class="outline-3">
+          <h3 id="org5242f77">
+          <span class="section-number-3">2.1</span>What is the
+          problem?</h3>
+          <div class="outline-text-3" id="text-2-1">
+            <ul class="org-ul">
+              <li>multiple versions</li>
+              <li>mutability 
+              <ul class="org-ul">
+                <li>mysql-python</li>
+              </ul></li>
+              <li>not accurate dependency graph</li>
+              <li>dependency hell</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org04f30da" class="outline-3">
+          <h3 id="org04f30da">
+          <span class="section-number-3">2.2</span>Some modern day
+          package management systems</h3>
+          <div class="outline-text-3" id="text-2-2">
+            <table border="2" cellspacing="0" cellpadding="6"
+            rules="groups" frame="hsides">
+              <colgroup>
+                <col class="org-left" />
+                <col class="org-left" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col" class="org-left">Package
+                  manager</th>
+                  <th scope="col" class="org-left">
+                  Distributions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="org-left">apt, apt-get</td>
+                  <td class="org-left">Debian, Ubuntu</td>
+                </tr>
+                <tr>
+                  <td class="org-left">rpm, yum</td>
+                  <td class="org-left">Redhat, Centos</td>
+                </tr>
+                <tr>
+                  <td class="org-left">pacman</td>
+                  <td class="org-left">ArchLinux</td>
+                </tr>
+                <tr>
+                  <td class="org-left">brew</td>
+                  <td class="org-left">MacOS</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="outline-container-org8b76522" class="outline-3">
+          <h3 id="org8b76522">
+          <span class="section-number-3">2.3</span>What about sub
+          ecosystems?</h3>
+          <div class="outline-text-3" id="text-2-3">
+            <table border="2" cellspacing="0" cellpadding="6"
+            rules="groups" frame="hsides">
+              <colgroup>
+                <col class="org-left" />
+                <col class="org-left" />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col" class="org-left">Package
+                  manager</th>
+                  <th scope="col" class="org-left">???</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="org-left">pip, virtualenv, pipenv</td>
+                  <td class="org-left">Python2,3(???)</td>
+                </tr>
+                <tr>
+                  <td class="org-left">npm, yarn</td>
+                  <td class="org-left">Nodejs</td>
+                </tr>
+                <tr>
+                  <td class="org-left">cabal, stack, hackage</td>
+                  <td class="org-left">Haskell :)</td>
+                </tr>
+                <tr>
+                  <td class="org-left">go?</td>
+                  <td class="org-left">go?</td>
+                </tr>
+                <tr>
+                  <td class="org-left">brew</td>
+                  <td class="org-left">MacOS</td>
+                </tr>
+                <tr>
+                  <td class="org-left">use-package, vim, fish,
+                  zsh</td>
+                  <td class="org-left">…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="outline-container-org39dcbaa" class="outline-3">
+          <h3 id="org39dcbaa">
+          <span class="section-number-3">2.4</span>How to make a
+          package manager?</h3>
+          <div class="outline-text-3" id="text-2-4">
+            <ul class="org-ul">
+              <li>What are the basic parts that we need?</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org036c35d" class="outline-3">
+          <h3 id="org036c35d">
+          <span class="section-number-3">2.5</span>How to make a
+          package manager?</h3>
+          <div class="outline-text-3" id="text-2-5">
+            <table border="2" cellspacing="0" cellpadding="6"
+            rules="groups" frame="hsides">
+              <colgroup>
+                <col class="org-left" />
+                <col class="org-left" />
+              </colgroup>
+              <tbody>
+                <tr>
+                  <td class="org-left">build dependencies</td>
+                  <td class="org-left">What do I need to build the
+                  program?</td>
+                </tr>
+                <tr>
+                  <td class="org-left">runtime dependencies</td>
+                  <td class="org-left">What 
+                  <code>.so</code>shared objects do I need?</td>
+                </tr>
+                <tr>
+                  <td class="org-left">configurations</td>
+                  <td class="org-left">What in 
+                  <code>/etc/...</code>config files</td>
+                </tr>
+              </tbody>
+            </table>
+            <ul class="org-ul">
+              <li>essentially think of it as a graph, whenever we
+              upgrade or install a package, we are mutating a node
+              on this graph to point to something else.</li>
+            </ul>
+          </div>
+          <div id="outline-container-org2b88d40" class="outline-4">
+            <h4 id="org2b88d40">
+            <span class="section-number-4">2.5.1</span>real
+            senario</h4>
+            <div class="outline-text-4" id="text-2-5-1">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+  
+<span style="color: #dcaeea;">pkgname</span>=pacman
+  
+<span style="color: #dcaeea;">pkgver</span>=5.1.0
+  
+<span style="color: #dcaeea;">_pkgver</span>=1.0.0
+  
+<span style="color: #dcaeea;">pkgrel</span>=
+<span style="color: #da8548; font-weight: bold;">2</span>
+  
+<span style="color: #dcaeea;">pkgdesc</span>=
+<span style="color: #98be65;">"A library-based package manager with
+dependency support"</span>
+  
+<span style="color: #dcaeea;">arch</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'i686'</span> 
+<span style="color: #98be65;">'x86_64'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">url</span>=
+<span style="color: #98be65;">
+"http://www.archlinux.org/pacman/"</span>
+  
+<span style="color: #dcaeea;">license</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'GPL'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">groups</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'base'</span> 
+<span style="color: #98be65;">'base-devel'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">depends</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'bash&gt;=4.2.042-2'</span> 
+<span style="color: #98be65;">'glibc&gt;=2.17-2'</span> 
+<span style="color: #98be65;">'libarchive&gt;=3.1.2'</span> 
+<span style="color: #98be65;">'</span>
+<span style="color: #98be65;">curl</span>
+<span style="color: #98be65;">&gt;=7.39.0'</span>
+           
+<span style="color: #98be65;">'gpgme'</span> 
+<span style="color: #98be65;">'archlinux-keyring'</span> 
+<span style="color: #98be65;">'manjaro-keyring'</span> 
+<span style="color: #98be65;">'pacman-mirrors&gt;=4.1.0'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">checkdepends</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'python2'</span> 
+<span style="color: #98be65;">'fakechroot'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">makedepends</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'asciidoc'</span> 
+<span style="color: #98be65;">'pacman&gt;=5.1'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">optdepends</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'haveged: for
+pacman-init.service'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">provides</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'pacman-contrib'</span> 
+<span style="color: #98be65;">'pacman-init'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">conflicts</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'pacman-contrib'</span> 
+<span style="color: #98be65;">'pacman-init'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">replaces</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'pacman-contrib'</span> 
+<span style="color: #98be65;">'pacman-init'</span>
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">backup</span>=
+<span style="color: #51afef;">(</span>etc/pacman.conf
+etc/makepkg.conf
+<span style="color: #51afef;">)</span>
+  
+<span style="color: #dcaeea;">install</span>=pacman.install
+  
+<span style="color: #dcaeea;">options</span>=
+<span style="color: #51afef;">(</span>
+<span style="color: #98be65;">'strip'</span> 
+<span style="color: #98be65;">'debug'</span>
+<span style="color: #51afef;">)</span>
 </pre>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org6e43064" class="outline-3">
-<h3 id="org6e43064"><span class="section-number-3">2.6</span> Problems with modern package management</h3>
-<div class="outline-text-3" id="text-2-6">
-<p>
-<a href="https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian">https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian</a>
-<img src="./images/screenshot-01.png" alt="screenshot-01.png" />
-</p>
-</div>
-</div>
-<div id="outline-container-org086fd75" class="outline-3">
-<h3 id="org086fd75"><span class="section-number-3">2.7</span> <span class="todo TODO">TODO</span> Why imperative is bad? What is so imperative about installing packages?</h3>
-<div class="outline-text-3" id="text-2-7">
-<p>
-referential transparency
-</p>
-</div>
-</div>
-<div id="outline-container-org1963e6f" class="outline-3">
-<h3 id="org1963e6f"><span class="section-number-3">2.8</span> Are you familiar with <code>DEPENDENCY HELL</code>?</h3>
-<div class="outline-text-3" id="text-2-8">
-<ul class="org-ul">
-<li><a href="https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x">https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x</a></li>
-<li><a href="https://github.com/vector-im/riot-web/network/dependencies">https://github.com/vector-im/riot-web/network/dependencies</a></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org372590f" class="outline-3">
-<h3 id="org372590f"><span class="section-number-3">2.9</span> All types of "DEPENDENCY HELL"</h3>
-<div class="outline-text-3" id="text-2-9">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org3a45c3b" class="outline-3">
+          <h3 id="org3a45c3b">
+          <span class="section-number-3">2.6</span>Problems with
+          modern package management</h3>
+          <div class="outline-text-3" id="text-2-6">
+            <p>
+              <a href="https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian">
+              https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian</a>
+              <img src="./images/screenshot-01.png"
+              alt="screenshot-01.png" />
+            </p>
+          </div>
+        </div>
+        <div id="outline-container-org3ca2797" class="outline-3">
+          <h3 id="org3ca2797">
+          <span class="section-number-3">2.7</span>Why imperative
+          is bad? What is so imperative about installing
+          packages?</h3>
+          <div class="outline-text-3" id="text-2-7">
+            <p>Mutation</p>
+          </div>
+        </div>
+        <div id="outline-container-org7b16921" class="outline-3">
+          <h3 id="org7b16921">
+          <span class="section-number-3">2.8</span>Are you familiar
+          with 
+          <code>DEPENDENCY HELL</code>?</h3>
+          <div class="outline-text-3" id="text-2-8">
+            <ul class="org-ul">
+              <li>
+                <a href="https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x">
+                https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&amp;utm_medium=web2x</a>
+              </li>
+              <li>
+                <a href="https://github.com/vector-im/riot-web/network/dependencies">
+                https://github.com/vector-im/riot-web/network/dependencies</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org9c3f2e6" class="outline-3">
+          <h3 id="org9c3f2e6">
+          <span class="section-number-3">2.9</span>All types of
+          “DEPENDENCY HELL”</h3>
+          <div class="outline-text-3" id="text-2-9">
+            <div class="figure">
+              <p>
+                <img src="https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png"
+                alt="0*7ezJOtYUkI5zyqWU.png" />
+              </p>
+            </div>
+            <ul class="org-ul">
+              <li>{ DLL, dependency, npm, cabal } hell, different
+              names for the same demon</li>
+              <li>conflicting dependency 
+              <ul class="org-ul">
+                <li>shared components like library links 
+                <code>cuda.7.so</code>vs 
+                <code>cuda.6.so</code></li>
+              </ul></li>
+              <li>multiple version side by side and roll backs</li>
+              <li>possible solutions 
+              <ul class="org-ul">
+                <li>set of stable packages like 
+                <code>Debian</code>or 
+                <code>haskell stack snapshots</code></li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-orgba9dbc1" class="outline-3">
+          <h3 id="orgba9dbc1">
+          <span class="section-number-3">2.10</span>Not Atomic
+          01</h3>
+          <div class="outline-text-3" id="text-2-10">
+            <ul class="org-ul">
+              <li>kill upgrades half way 
+              <ul class="org-ul">
+                <li>packages left in a semi updated state</li>
+                <li>sometimes need to manually remove lock
+                files</li>
+              </ul></li>
+            </ul>
+            <div class="org-src-container">
+              <pre class="src src-sh">
+   COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
+   dpkg    
+<span style="color: #da8548; font-weight: bold;">29329</span> root 
+  3uW  REG    8,7        
+<span style="color: #da8548; font-weight: bold;">0</span> 
+<span style="color: #da8548; font-weight: bold;">262367</span>
+/var/lib/dpkg/lock
+</pre>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orge5b5556" class="outline-3">
+          <h3 id="orge5b5556">
+          <span class="section-number-3">2.11</span>Not Atomic
+          02</h3>
+          <div class="outline-text-3" id="text-2-11">
+            <ul class="org-ul">
+              <li>can be fixed but kinda troublesome.</li>
+            </ul>
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-02.png"
+                alt="screenshot-02.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orgfaab823" class="outline-3">
+          <h3 id="orgfaab823">
+          <span class="section-number-3">2.12</span>Whats bad about
+          imperative summary?</h3>
+          <div class="outline-text-3" id="text-2-12">
+            <ul class="org-ul">
+              <li>No Variability 
+              <ul class="org-ul">
+                <li>cannot point to older versions of the same
+                thing</li>
+              </ul></li>
+              <li>Dependency hell 
+              <ul class="org-ul">
+                <li>conflicting dependencies</li>
+              </ul></li>
+              <li>Not atomic upgrades 
+              <ul class="org-ul">
+                <li>unknown state if break half way</li>
+              </ul></li>
+            </ul>
+            <p>These problems are really similar to the problems
+            with imperative languages! like 
+            <code>JAVA</code>and people have already made solutions
+            for them like how 
+            <code>Haskell</code>does. We could learn a thing or two
+            from them.</p>
+          </div>
+        </div>
+      </div>
+      <div id="outline-container-org1e51dad" class="outline-2">
+        <h2 id="org1e51dad">
+        <span class="section-number-2">3</span>What it
+        should/could/would have been?</h2>
+        <div class="outline-text-2" id="text-3">
+          <ul class="org-ul">
+            <li>Imagine now that we implemented all the things of a
+            functional programming language to create a functional
+            package management system?</li>
+            <li>What can we do with this?</li>
+          </ul>
+        </div>
+        <div id="outline-container-orgf055651" class="outline-3">
+          <h3 id="orgf055651">
+          <span class="section-number-3">3.1</span>GUIX vs Nix</h3>
+          <div class="outline-text-3" id="text-3-1">
+            <ul class="org-ul">
+              <li>
+                <img src="./images/screenshot-04.png"
+                alt="screenshot-04.png" />
+              </li>
+              <li>
+                <img src="./images/screenshot-03.png"
+                alt="screenshot-03.png" />
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-orgab2620f" class="outline-3">
+          <h3 id="orgab2620f">
+          <span class="section-number-3">3.2</span>Introducing Nix
+          Package Management</h3>
+          <div class="outline-text-3" id="text-3-2">
+            <ul class="org-ul">
+              <li>solves all of the problems above 
+              <ul class="org-ul">
+                <li>Can point to different versions of the same
+                thing 
+                <ul class="org-ul">
+                  <li>cannot point to older versions of the same
+                  thing</li>
+                </ul></li>
+                <li>Dependency hell</li>
+                <li>Not atomic upgrades 
+                <ul class="org-ul">
+                  <li>unknown state if break half way</li>
+                </ul></li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org96ef57c" class="outline-3">
+          <h3 id="org96ef57c">
+          <span class="section-number-3">3.3</span>Main
+          mechanism</h3>
+          <div class="outline-text-3" id="text-3-3">
+            <ul class="org-ul">
+              <li>install everything in path 
+              <code>/nix/store/{hash}-name</code></li>
+              <li>via 
+              <code>symlinking</code></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org42dc91d" class="outline-3">
+          <h3 id="org42dc91d">
+          <span class="section-number-3">3.4</span>What you get for
+          free with this mechanism?</h3>
+          <div class="outline-text-3" id="text-3-4">
+            <ul class="org-ul">
+              <li>no 
+              <code>sudo</code></li>
+              <li>easy revert and roll back</li>
+              <li>select specific version</li>
+              <li>2 different version can run at the same time</li>
+              <li>same 
+              <b>development</b>environment as the 
+              <b>runtime</b>environment! 
+              <ul class="org-ul">
+                <li>nix-shell</li>
+              </ul></li>
+            </ul>
+          </div>
+          <div id="outline-container-org61e0fde" class="outline-4">
+            <h4 id="org61e0fde">
+            <span class="section-number-4">3.4.1</span>no 
+            <code>sudo</code>, where is my 
+            <code>sudo</code>?</h4>
+            <div class="outline-text-4" id="text-3-4-1">
+              <ul class="org-ul">
+                <li>linux was developed as a 
+                <code>time sharing</code>system</li>
+                <li>many users were expected to share a single
+                computer.</li>
+                <li>thus to manage conflicts, a 
+                <code>super user</code>, 
+                <code>root</code>was required to install and manage
+                packages</li>
+              </ul>
+              <div class="org-src-container">
+                <pre class="src src-sh">
+nix-env -iA nixos.figlet
+</pre>
+              </div>
+            </div>
+          </div>
+          <div id="outline-container-orgd0f84e5" class="outline-4">
+            <h4 id="orgd0f84e5">
+            <span class="section-number-4">3.4.2</span>easy revert,
+            rollback</h4>
+            <div class="outline-text-4" id="text-3-4-2">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      figlet 
+<span style="color: #98be65;">"I am here!"</span>
+</pre>
+              </div>
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      nix-env --rollback
+</pre>
+              </div>
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      figlet 
+<span style="color: #98be65;">"are you still here?"</span>
+</pre>
+              </div>
+            </div>
+          </div>
+          <div id="outline-container-orgb34fa54" class="outline-4">
+            <h4 id="orgb34fa54">
+            <span class="section-number-4">3.4.3</span>Select
+            specific version</h4>
+            <div class="outline-text-4" id="text-3-4-3">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      
+<span style="color: #ECBE7B;">cd</span> ~/projects/nix-config/
+      
+<span style="color: #ECBE7B;">git</span> checkout ??
+      nix-env -f ~/projects/nix-config/ -iA screenfetch
+</pre>
+              </div>
+              <p>screenfetch 2016 vs current</p>
+            </div>
+          </div>
+          <div id="outline-container-org581bab3" class="outline-4">
+            <h4 id="org581bab3">
+            <span class="section-number-4">3.4.4</span>Installing
+            and running 2 version of same software</h4>
+            <div class="outline-text-4" id="text-3-4-4">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      stack --version
+      su
+      stack --version
+</pre>
+              </div>
+            </div>
+          </div>
+          <div id="outline-container-org2ddacd5" class="outline-4">
+            <h4 id="org2ddacd5">
+            <span class="section-number-4">3.4.5</span>Same
+            development environment and runtime environment</h4>
+            <div class="outline-text-4" id="text-3-4-5">
+              <ul class="org-ul">
+                <li>I am not an electrical engineer or something
+                but I program my own keyboard. So I need some sort
+                of firmware flasher. like 
+                <code>dfuprogrammer</code>I dont need it on my
+                system.</li>
+              </ul>
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      
+<span style="color: #ECBE7B;">cd</span> ~/projects/qmk_firmware/
+      
+<span style="color: #ECBE7B;">make</span>
+      dfuprogrammer
+      nix-shell
+      
+<span style="color: #ECBE7B;">make</span>
+      dfuprogrammer
+</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orgca9f87f" class="outline-3">
+          <h3 id="orgca9f87f">
+          <span class="section-number-3">3.5</span>Going all the
+          way, NixOS</h3>
+          <div class="outline-text-3" id="text-3-5">
+            <ul class="org-ul">
+              <li>whole system management via Nix and thus NixOS 
+              <ul class="org-ul">
+                <li>Version controlled operating system</li>
+                <li>show OS reboot</li>
+                <li>I wanted to show my generations so had been
+                delaying removing my older generations</li>
+              </ul></li>
+            </ul>
+            <div class="org-src-container">
+              <pre class="src src-sh">
+     df -h /
+     nix-collect-garbage --delete-older-than 
+<span style="color: #da8548; font-weight: bold;">10</span>
+--dry-run
+</pre>
+            </div>
+          </div>
+          <div id="outline-container-orgc3888e3" class="outline-4">
+            <h4 id="orgc3888e3">
+            <span class="section-number-4">3.5.1</span>NixOS</h4>
+            <div class="outline-text-4" id="text-3-5-1">
+              <ul class="org-ul">
+                <li>show 
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a></li>
+                <li>python package management 
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a></li>
+                <li>gnupg agent 
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a></li>
+                <li>ports 
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a>
+                <ul class="org-ul">
+                  <li>I think it helps me get a state of all the
+                  ports in one place</li>
+                </ul></li>
+                <li>users and security all in one place 
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a>
+                <ul class="org-ul">
+                  <li>authorisedkeys</li>
+                </ul></li>
+                <li>postgresql can be packaged in 
+                <code>shell.nix</code>
+                <a href="file:///home/df/nix-config/configuration.nix">
+                file:///home/df/nix-config/configuration.nix</a>
+                <ul class="org-ul">
+                  <li>separate project called 
+                  <code>nixos-shell</code>
+                  <a href="https://github.com/chrisfarms/nixos-shell">
+                  https://github.com/chrisfarms/nixos-shell</a></li>
+                </ul></li>
+                <li>filesystems 
+                <a href="file:///etc/nixos/hardware-configuration.nix">
+                file:///etc/nixos/hardware-configuration.nix</a></li>
+              </ul>
+            </div>
+          </div>
+          <div id="outline-container-orgf8ef624" class="outline-4">
+            <h4 id="orgf8ef624">
+            <span class="section-number-4">3.5.2</span>docker</h4>
+            <div class="outline-text-4" id="text-3-5-2">
+              <p>
+                <a href="https://nixos.wiki/wiki/Docker">
+                https://nixos.wiki/wiki/Docker</a>
+              </p>
+              <div class="org-src-container">
+                <pre class="src src-nix">
+      
+<span style="color: #dcaeea;">virtualisation.docker.enable</span> =
 
-<div class="figure">
-<p><img src="https://miro.medium.com/max/984/0*7ezJOtYUkI5zyqWU.png" alt="0*7ezJOtYUkI5zyqWU.png" />
-</p>
-</div>
-<ul class="org-ul">
-<li>{ DLL, dependency, npm, cabal } hell, different names for the same demon</li>
-<li>conflicting dependency
-<ul class="org-ul">
-<li>shared components like library links <code>cuda.7.so</code> vs <code>cuda.6.so</code></li>
-</ul></li>
-<li>multiple version side by side and roll backs</li>
-<li>possible solutions
-<ul class="org-ul">
-<li>set of stable packages like <code>Debian</code> or <code>haskell stack snapshots</code></li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgd1fbefe" class="outline-3">
-<h3 id="orgd1fbefe"><span class="section-number-3">2.10</span> Not Atomic 01</h3>
-<div class="outline-text-3" id="text-2-10">
-<ul class="org-ul">
-<li>kill upgrades half way
-<ul class="org-ul">
-<li>packages left in a semi updated state</li>
-<li>sometimes need to manually remove lock files</li>
-</ul></li>
-</ul>
-<div class="org-src-container">
-<pre class="src src-sh">COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF   NODE NAME
-dpkg    29329 root    3uW  REG    8,7        0 262367 /var/lib/dpkg/lock
+<span style="color: #c678dd;">true</span>;
+      users.users.
+<span style="color: #a9a1e1;">&lt;myuser&gt;</span>.
+<span style="color: #dcaeea;">extraGroups</span> = [ 
+<span style="color: #98be65;">"docker"</span> ];
 </pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org076f574" class="outline-3">
-<h3 id="org076f574"><span class="section-number-3">2.11</span> Not Atomic 02</h3>
-<div class="outline-text-3" id="text-2-11">
-<ul class="org-ul">
-<li>can be fixed but kinda troublesome.</li>
-</ul>
-
-<div class="figure">
-<p><img src="./images/screenshot-02.png" alt="screenshot-02.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-org4fecca5" class="outline-3">
-<h3 id="org4fecca5"><span class="section-number-3">2.12</span> Whats bad about imperative summary?</h3>
-<div class="outline-text-3" id="text-2-12">
-<ul class="org-ul">
-<li>No referential transparency
-<ul class="org-ul">
-<li>cannot point to older versions of the same thing</li>
-</ul></li>
-<li>Dependency hell
-<ul class="org-ul">
-<li>conflicting dependencies</li>
-</ul></li>
-<li>Not atomic upgrades
-<ul class="org-ul">
-<li>unknown state if break half way</li>
-</ul></li>
-</ul>
-<p>
-These problems are really similar to the problems with imperative languages!
-like <code>JAVA</code> and people have already made solutions for them like how <code>Haskell</code>
-does. We could learn a thing or two from them.
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-orgcdec5b9" class="outline-2">
-<h2 id="orgcdec5b9"><span class="section-number-2">3</span> What it should/could/would have been?</h2>
-<div class="outline-text-2" id="text-3">
-<ul class="org-ul">
-<li>Imagine now that we implemented all the things of a functional programming
-language to create a functional package management system?</li>
-<li>What can we do with this?</li>
-</ul>
-</div>
-<div id="outline-container-org4b83cdf" class="outline-3">
-<h3 id="org4b83cdf"><span class="section-number-3">3.1</span> GUIX vs Nix</h3>
-<div class="outline-text-3" id="text-3-1">
-<ul class="org-ul">
-<li><img src="./images/screenshot-04.png" alt="screenshot-04.png" /></li>
-<li><img src="./images/screenshot-03.png" alt="screenshot-03.png" /></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org1eccb99" class="outline-3">
-<h3 id="org1eccb99"><span class="section-number-3">3.2</span> Introducing Nix Package Management</h3>
-<div class="outline-text-3" id="text-3-2">
-<ul class="org-ul">
-<li>solves all of the problems above
-<ul class="org-ul">
-<li>No referential transparency
-<ul class="org-ul">
-<li>cannot point to older versions of the same thing</li>
-</ul></li>
-<li>Dependency hell</li>
-<li>Not atomic upgrades
-<ul class="org-ul">
-<li>unknown state if break half way</li>
-</ul></li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgae786d8" class="outline-3">
-<h3 id="orgae786d8"><span class="section-number-3">3.3</span> Main mechanism</h3>
-<div class="outline-text-3" id="text-3-3">
-<ul class="org-ul">
-<li>referential transparency
-<ul class="org-ul">
-<li>install everything in path <code>/nix/store/{hash}-name</code></li>
-<li>via <code>symlinking</code></li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgb69c29a" class="outline-3">
-<h3 id="orgb69c29a"><span class="section-number-3">3.4</span> What you get for free with this mechanism?</h3>
-<div class="outline-text-3" id="text-3-4">
-<ul class="org-ul">
-<li>no <code>sudo</code></li>
-<li>easy revert and roll back</li>
-<li>select specific version</li>
-<li>2 different version can run at the same time</li>
-<li>same <b>development</b> environment as the <b>runtime</b> environment!
-<ul class="org-ul">
-<li>nix-shell</li>
-</ul></li>
-</ul>
-</div>
-<div id="outline-container-orgade6e39" class="outline-4">
-<h4 id="orgade6e39"><span class="section-number-4">3.4.1</span> no <code>sudo</code>, where is my <code>sudo</code>?</h4>
-<div class="outline-text-4" id="text-3-4-1">
-<ul class="org-ul">
-<li>linux was developed as a <code>time sharing</code> system</li>
-<li>many users were expected to share a single computer.</li>
-<li><p>
-thus to manage conflicts, a <code>super user</code>, <code>root</code> was required to
-install and manage packages
-</p>
-<div class="org-src-container">
-<pre class="src src-sh">nix-env -iA nixos.figlet
+              </div>
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      nix-build 
+<span style="color: #98be65;">'&lt;nixpkgs&gt;'</span> -A
+dockerTools.examples.redis
+      docker load &lt; result
 </pre>
-</div></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org00767fc" class="outline-4">
-<h4 id="org00767fc"><span class="section-number-4">3.4.2</span> easy revert, rollback</h4>
-<div class="outline-text-4" id="text-3-4-2">
-<div class="org-src-container">
-<pre class="src src-sh">figlet <span style="color: #ff4ea3;">"I am here!"</span>
+              </div>
+              <p>
+                <a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix">
+                https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix</a>
+              </p>
+            </div>
+          </div>
+          <div id="outline-container-org38a13e6" class="outline-4">
+            <h4 id="org38a13e6">
+            <span class="section-number-4">3.5.3</span>easy
+            cd/dvd</h4>
+            <div class="outline-text-4" id="text-3-5-3">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      
+<span style="color: #ECBE7B;">cd</span> ~/projects/nixpkgs
+      nix-build -A config.system.build.isoImage -I
+nixos-config=modules/installe
+<span style="color: #51afef;">
+r</span>/cd-dvd/installation-cd-minimal.nix default.nix
 </pre>
-</div>
-<div class="org-src-container">
-<pre class="src src-sh">nix-env --rollback
+              </div>
+            </div>
+          </div>
+          <div id="outline-container-orgae93c6f" class="outline-4">
+            <h4 id="orgae93c6f">
+            <span class="section-number-4">3.5.4</span>easy vm</h4>
+            <div class="outline-text-4" id="text-3-5-4">
+              <div class="org-src-container">
+                <pre class="src src-sh">
+      
+<span style="color: #ECBE7B;">cd</span> ./nixops
+      nixops create -d simple02 network.nix
+      nixops deploy -d simple02
 </pre>
-</div>
-<div class="org-src-container">
-<pre class="src src-sh">figlet <span style="color: #ff4ea3;">"are you still here?"</span>
+              </div>
+              <div class="org-src-container">
+                <pre class="src src-nix">
+      
+<span style="color: #dcaeea;">deployment.targetEnv</span> = 
+<span style="color: #98be65;">"ec2"</span>;
+      
+<span style="color: #dcaeea;">deployment.region</span> = 
+<span style="color: #98be65;">"eu-west-1"</span>;
 </pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org8e6992b" class="outline-4">
-<h4 id="org8e6992b"><span class="section-number-4">3.4.3</span> Select specific version</h4>
-<div class="outline-text-4" id="text-3-4-3">
-<div class="org-src-container">
-<pre class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/nix-config/
-git checkout ??
-nix-env -f ~/projects/nix-config/ -iA screenfetch
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="outline-container-org794b25a" class="outline-2">
+        <h2 id="org794b25a">
+        <span class="section-number-2">4</span>How does nix
+        actually work?</h2>
+        <div class="outline-text-2" id="text-4"></div>
+        <div id="outline-container-org5d8ff95" class="outline-3">
+          <h3 id="org5d8ff95">
+          <span class="section-number-3">4.1</span>Nix
+          expressions</h3>
+          <div class="outline-text-3" id="text-4-1">
+            <ul class="org-ul">
+              <li>functional expressions, not general purpose
+              please do not program things with it</li>
+              <li>comes with its own BNF grammar</li>
+            </ul>
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-05.png"
+                alt="screenshot-05.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org03f505a" class="outline-3">
+          <h3 id="org03f505a">
+          <span class="section-number-3">4.2</span>Language
+          features</h3>
+          <div class="outline-text-3" id="text-4-2">
+            <ul class="org-ul">
+              <li>Nix expressions 
+              <ul class="org-ul">
+                <li>dynamically typed</li>
+                <li>lazy</li>
+                <li>pure</li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org499bd19" class="outline-3">
+          <h3 id="org499bd19">
+          <span class="section-number-3">4.3</span>The main
+          point</h3>
+          <div class="outline-text-3" id="text-4-3">
+            <ul class="org-ul">
+              <li>Nix expressions are here to describe a graph of
+              build actions called 
+              <code>derivations</code>
+              <ul class="org-ul">
+                <li>build script</li>
+                <li>set of environment variables</li>
+                <li>set of dependencies</li>
+              </ul></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org02660cf" class="outline-3">
+          <h3 id="org02660cf">
+          <span class="section-number-3">4.4</span>Example:
+          Xmonad</h3>
+          <div class="outline-text-3" id="text-4-4">
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-06.png"
+                alt="screenshot-06.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org9152b5c" class="outline-3">
+          <h3 id="org9152b5c">
+          <span class="section-number-3">4.5</span>Example:
+          Xmonad</h3>
+          <div class="outline-text-3" id="text-4-5">
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-07.png"
+                alt="screenshot-07.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orge796909" class="outline-3">
+          <h3 id="orge796909">
+          <span class="section-number-3">4.6</span>Main
+          mechanism</h3>
+          <div class="outline-text-3" id="text-4-6">
+            <div class="figure">
+              <p>
+                <img src="./images/screenshot-08.png"
+                alt="screenshot-08.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="outline-container-org5bae43a" class="outline-2">
+        <h2 id="org5bae43a">
+        <span class="section-number-2">5</span>Nix as
+        infrastructure (imagination)</h2>
+        <div class="outline-text-2" id="text-5">
+          <ul class="org-ul">
+            <li>how might one use nix in 
+            <code>JPMC's</code>infrastructure?</li>
+          </ul>
+        </div>
+        <div id="outline-container-org71b5088" class="outline-3">
+          <h3 id="org71b5088">
+          <span class="section-number-3">5.1</span>Main
+          componenets</h3>
+          <div class="outline-text-3" id="text-5-1">
+            <ul class="org-ul">
+              <li>Hydra caching</li>
+              <li>Dependency management</li>
+              <li>Ease of use 
+              <ul class="org-ul">
+                <li>nix-shell</li>
+              </ul></li>
+              <li>Security</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org7d447e8" class="outline-3">
+          <h3 id="org7d447e8">
+          <span class="section-number-3">5.2</span>Caching build
+          farm or cachix</h3>
+          <div class="outline-text-3" id="text-5-2">
+            <p>
+              <img src="./images/screenshot-10.png"
+              alt="screenshot-10.png" />
+              <img src="./images/screenshot-11.png"
+              alt="screenshot-11.png" />
+            </p>
+          </div>
+        </div>
+      </div>
+      <div id="outline-container-org1a508e6" class="outline-2">
+        <h2 id="org1a508e6">
+        <span class="section-number-2">6</span>references</h2>
+        <div class="outline-text-2" id="text-6">
+          <ul class="org-ul">
+            <li>[HTML] Nix: A Safe and Policy-Free System for
+            Software Deployment. 
+            <ul class="org-ul">
+              <li>E Dolstra, M De Jonge, E Visser - usenix.org</li>
+              <li>
+                <a href="https://nixos.org/~eelco/pubs/nspfssd-lisa2004-final.pdf">
+                https://nixos.org/~eelco/pubs/nspfssd-lisa2004-final.pdf</a>
+              </li>
+            </ul></li>
+            <li>[PDF] A Purely Functional Linux Distribution -
+            NixOS 
+            <ul class="org-ul">
+              <li>E Dolstra</li>
+              <li>
+                <a href="https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf">
+                https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf</a>
+              </li>
+            </ul></li>
+            <li>Hydra - NixOS 
+            <ul class="org-ul">
+              <li>
+                <a href="https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf">
+                https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf</a>
+              </li>
+            </ul></li>
+          </ul>
+        </div>
+      </div>
+      <div id="outline-container-org9815645" class="outline-2">
+        <h2 id="org9815645">
+        <span class="section-number-2">7</span>Part 2 Warp
+        optimization</h2>
+        <div class="outline-text-2" id="text-7">
+          <div class="figure">
+            <p>
+              <img src="Part_2_Warp_optimization/2020-08-20_14-51-11_screenshot.png"
+              alt="2020-08-20_14-51-11_screenshot.png" />
+            </p>
+          </div>
+          <p>
+            <a href="https://www.aosabook.org/en/posa/warp.html">
+            https://www.aosabook.org/en/posa/warp.html</a>
+          </p>
+        </div>
+        <div id="outline-container-org2e1e6c1" class="outline-3">
+          <h3 id="org2e1e6c1">
+          <span class="section-number-3">7.1</span>2013
+          Results</h3>
+          <div class="outline-text-3" id="text-7-1">
+            <div class="figure">
+              <p>
+                <img src="Part_2_warp/2020-08-20_14-50-23_screenshot.png"
+                alt="2020-08-20_14-50-23_screenshot.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org53cb9e0" class="outline-3">
+          <h3 id="org53cb9e0">
+          <span class="section-number-3">7.2</span>Overall
+          Architecture</h3>
+          <div class="outline-text-3" id="text-7-2">
+            <div class="figure">
+              <p>
+                <img src="Part_2_Warp_optimization/2020-08-20_15-46-34_screenshot.png"
+                alt="2020-08-20_15-46-34_screenshot.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-orga7eb630" class="outline-3">
+          <h3 id="orga7eb630">
+          <span class="section-number-3">7.3</span>Type and life
+          cycle</h3>
+          <div class="outline-text-3" id="text-7-3">
+            <div class="org-src-container">
+              <pre class="src src-haskell">
+<span style="color: #51afef;">type</span> 
+<span style="color: #ECBE7B;">Application</span> 
+<span style="color: #dcaeea;">=</span> 
+<span style="color: #ECBE7B;">Request</span> 
+<span style="color: #dcaeea;">-&gt;</span> 
+<span style="color: #ECBE7B;">ResourceT</span> 
+<span style="color: #ECBE7B;">IO</span> 
+<span style="color: #ECBE7B;">Response</span>
 </pre>
-</div>
-<p>
-screenfetch 2016 vs current
-</p>
-</div>
-</div>
-<div id="outline-container-org71abbba" class="outline-4">
-<h4 id="org71abbba"><span class="section-number-4">3.4.4</span> Installing and running 2 version of same software</h4>
-<div class="outline-text-4" id="text-3-4-4">
-<div class="org-src-container">
-<pre class="src src-sh">stack --version
-su
-stack --version
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-orgbf33f61" class="outline-4">
-<h4 id="orgbf33f61"><span class="section-number-4">3.4.5</span> Same development environment and runtime environment</h4>
-<div class="outline-text-4" id="text-3-4-5">
-<ul class="org-ul">
-<li>I am not an electrical engineer or something but I program my
-own keyboard. So I need some sort of firmware flasher. like
-<code>dfuprogrammer</code> I dont need it on my system.</li>
-</ul>
-<div class="org-src-container">
-<pre class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/qmk_firmware/
-make
-dfuprogrammer
-nix-shell
-make
-dfuprogrammer
-</pre>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org729eb00" class="outline-3">
-<h3 id="org729eb00"><span class="section-number-3">3.5</span> Going all the way, NixOS</h3>
-<div class="outline-text-3" id="text-3-5">
-<ul class="org-ul">
-<li>whole system management via Nix and thus NixOS
-<ul class="org-ul">
-<li>Version controlled operating system</li>
-<li>show OS reboot</li>
-<li>I wanted to show my generations so had been delaying removing
-my older generations</li>
-</ul></li>
-</ul>
-<div class="org-src-container">
-<pre class="src src-sh">df -h /
-nix-collect-garbage --delete-older-than 10 --dry-run
-</pre>
-</div>
-</div>
-<div id="outline-container-orgb45c29d" class="outline-4">
-<h4 id="orgb45c29d"><span class="section-number-4">3.5.1</span> NixOS</h4>
-<div class="outline-text-4" id="text-3-5-1">
-<ul class="org-ul">
-<li>show <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
-<li>python package management <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
-<li>gnupg agent <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a></li>
-<li>ports <a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
-<ul class="org-ul">
-<li>I think it helps me get a state of all the ports in one place</li>
-</ul></li>
-<li>users and security all in one place
-<a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
-<ul class="org-ul">
-<li>authorisedkeys</li>
-</ul></li>
-<li>postgresql can be packaged in <code>shell.nix</code>
-<a href="file:///home/df/nix-config/configuration.nix">file:///home/df/nix-config/configuration.nix</a>
-<ul class="org-ul">
-<li>separate project called <code>nixos-shell</code>
-<a href="https://github.com/chrisfarms/nixos-shell">https://github.com/chrisfarms/nixos-shell</a></li>
-</ul></li>
-<li>filesystems <a href="file:///etc/nixos/hardware-configuration.nix">file:///etc/nixos/hardware-configuration.nix</a></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org9f36549" class="outline-4">
-<h4 id="org9f36549"><span class="section-number-4">3.5.2</span> docker</h4>
-<div class="outline-text-4" id="text-3-5-2">
-<p>
-<a href="https://nixos.wiki/wiki/Docker">https://nixos.wiki/wiki/Docker</a>
-</p>
-<div class="org-src-container">
-<pre class="src src-nix"><span style="color: #ff8700;">virtualisation.docker.enable</span> = <span style="color: #d18aff;">true</span>;
-users.users.<span style="color: #5fafd7;">&lt;myuser&gt;</span>.<span style="color: #ff8700;">extraGroups</span> = <span style="color: #dd0000; font-weight: bold;">[</span> <span style="color: #ff4ea3;">"docker"</span> <span style="color: #dd0000; font-weight: bold;">]</span>;
-</pre>
-</div>
-<div class="org-src-container">
-<pre class="src src-sh">nix-build <span style="color: #ff4ea3;">'&lt;nixpkgs&gt;'</span> -A dockerTools.examples.redis
-docker load &lt; result
-</pre>
-</div>
-<p>
-<a href="https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix">https://github.com/NixOS/nixpkgs/blob/master/pkgs/build-support/docker/examples.nix</a>
-</p>
-</div>
-</div>
-<div id="outline-container-org0e4c28c" class="outline-4">
-<h4 id="org0e4c28c"><span class="section-number-4">3.5.3</span> easy cd/dvd</h4>
-<div class="outline-text-4" id="text-3-5-3">
-<div class="org-src-container">
-<pre class="src src-sh"><span style="color: #d18aff;">cd</span> ~/projects/nixpkgs
-nix-build -A config.system.build.isoImage -I nixos-config=modules/installer/cd-dvd/installation-cd-minimal.nix default.nix
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org7b148ae" class="outline-4">
-<h4 id="org7b148ae"><span class="section-number-4">3.5.4</span> easy vm</h4>
-<div class="outline-text-4" id="text-3-5-4">
-<div class="org-src-container">
-<pre class="src src-sh"><span style="color: #d18aff;">cd</span> ./nixops
-nixops create -d simple02 network.nix
-nixops deploy -d simple02
-</pre>
-</div>
-<div class="org-src-container">
-<pre class="src src-nix"><span style="color: #ff8700;">deployment.targetEnv</span> = <span style="color: #ff4ea3;">"ec2"</span>;
-<span style="color: #ff8700;">deployment.region</span> = <span style="color: #ff4ea3;">"eu-west-1"</span>;
-</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org77648d7" class="outline-2">
-<h2 id="org77648d7"><span class="section-number-2">4</span> How does nix actually work?</h2>
-<div class="outline-text-2" id="text-4">
-</div>
-<div id="outline-container-orgc5518b5" class="outline-3">
-<h3 id="orgc5518b5"><span class="section-number-3">4.1</span> Nix expressions</h3>
-<div class="outline-text-3" id="text-4-1">
-<ul class="org-ul">
-<li>functional expressions, not general purpose please do not program
-things with it</li>
-<li>comes with its own BNF grammar</li>
-</ul>
-
-<div class="figure">
-<p><img src="./images/screenshot-05.png" alt="screenshot-05.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-orga60edc0" class="outline-3">
-<h3 id="orga60edc0"><span class="section-number-3">4.2</span> Language features</h3>
-<div class="outline-text-3" id="text-4-2">
-<ul class="org-ul">
-<li>Nix expressions
-<ul class="org-ul">
-<li>dynamically typed</li>
-<li>lazy</li>
-<li>pure</li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgc6c8051" class="outline-3">
-<h3 id="orgc6c8051"><span class="section-number-3">4.3</span> The main point</h3>
-<div class="outline-text-3" id="text-4-3">
-<ul class="org-ul">
-<li>Nix expressions are here to describe a graph of build actions
-called <code>derivations</code>
-<ul class="org-ul">
-<li>build script</li>
-<li>set of environment variables</li>
-<li>set of dependencies</li>
-</ul></li>
-</ul>
-</div>
-</div>
-<div id="outline-container-org6799cbf" class="outline-3">
-<h3 id="org6799cbf"><span class="section-number-3">4.4</span> Example: Xmonad</h3>
-<div class="outline-text-3" id="text-4-4">
-
-<div class="figure">
-<p><img src="./images/screenshot-06.png" alt="screenshot-06.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-orge24a214" class="outline-3">
-<h3 id="orge24a214"><span class="section-number-3">4.5</span> Example: Xmonad</h3>
-<div class="outline-text-3" id="text-4-5">
-
-<div class="figure">
-<p><img src="./images/screenshot-07.png" alt="screenshot-07.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-org8987052" class="outline-3">
-<h3 id="org8987052"><span class="section-number-3">4.6</span> Main mechanism</h3>
-<div class="outline-text-3" id="text-4-6">
-
-<div class="figure">
-<p><img src="./images/screenshot-08.png" alt="screenshot-08.png" />
-</p>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org95a08ac" class="outline-2">
-<h2 id="org95a08ac"><span class="section-number-2">5</span> Nix as infrastructure (imagination)</h2>
-<div class="outline-text-2" id="text-5">
-<ul class="org-ul">
-<li>how might one use nix in <code>JPMC's</code> infrastructure?</li>
-</ul>
-</div>
-<div id="outline-container-org7fe61c7" class="outline-3">
-<h3 id="org7fe61c7"><span class="section-number-3">5.1</span> Main componenets</h3>
-<div class="outline-text-3" id="text-5-1">
-<ul class="org-ul">
-<li>Hydra caching</li>
-<li>Dependency management</li>
-<li>Ease of use
-<ul class="org-ul">
-<li>nix-shell</li>
-</ul></li>
-<li>Security</li>
-</ul>
-</div>
-</div>
-<div id="outline-container-orgf131661" class="outline-3">
-<h3 id="orgf131661"><span class="section-number-3">5.2</span> Caching build farm or cachix</h3>
-<div class="outline-text-3" id="text-5-2">
-<p>
-<img src="./images/screenshot-10.png" alt="screenshot-10.png" />
-<img src="./images/screenshot-11.png" alt="screenshot-11.png" />
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-org6f407cc" class="outline-2">
-<h2 id="org6f407cc"><span class="section-number-2">6</span> references</h2>
-<div class="outline-text-2" id="text-6">
-<ul class="org-ul">
-<li>[HTML] Nix: A Safe and Policy-Free System for Software Deployment.
-<ul class="org-ul">
-<li>E Dolstra, M De Jonge, E Visser - usenix.org</li>
-<li><a href="https://nixos.org/~eelco/pubs/nspfssd-lisa2004-final.pdf">https://nixos.org/~eelco/pubs/nspfssd-lisa2004-final.pdf</a></li>
-</ul></li>
-<li>[PDF] A Purely Functional Linux Distribution - NixOS
-<ul class="org-ul">
-<li>E Dolstra</li>
-<li><a href="https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf">https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf</a></li>
-</ul></li>
-<li>Hydra - NixOS
-<ul class="org-ul">
-<li><a href="https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf">https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf</a></li>
-</ul></li>
-</ul>
-</div>
-</div>
-</div>
-<div id="postamble" class="status">
-<p class="author">Author: Wong Ding Feng</p>
-<p class="date">Created: 2019-08-04 Sun 16:15</p>
-<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
-</div>
-</body>
+            </div>
+            <div class="figure">
+              <p>
+                <img src="Part_2_Warp_optimization/2020-08-20_15-47-23_screenshot.png"
+                alt="2020-08-20_15-47-23_screenshot.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+        <div id="outline-container-org82d43fb" class="outline-3">
+          <h3 id="org82d43fb">
+          <span class="section-number-3">7.4</span>Threads</h3>
+          <div class="outline-text-3" id="text-7-4">
+            <p>user threads</p>
+          </div>
+        </div>
+        <div id="outline-container-org8167c95" class="outline-3">
+          <h3 id="org8167c95">
+          <span class="section-number-3">7.5</span>As little
+          syscalls as possible</h3>
+          <div class="outline-text-3" id="text-7-5">
+            <ul class="org-ul">
+              <li>use strace to check what nginx was doing</li>
+              <li>found 
+              <code>accept4</code></li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-orgfd88559" class="outline-3">
+          <h3 id="orgfd88559">
+          <span class="section-number-3">7.6</span>Profiling</h3>
+          <div class="outline-text-3" id="text-7-6">
+            <ul class="org-ul">
+              <li>the date string format is taking up most of the
+              cpu time</li>
+              <li>so they made a cache for that</li>
+              <li>btw haskell by default memoised every thing</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-org4559975" class="outline-3">
+          <h3 id="org4559975">
+          <span class="section-number-3">7.7</span>Avoiding
+          locks</h3>
+          <div class="outline-text-3" id="text-7-7">
+            <p>they used compare and swap instead</p>
+          </div>
+        </div>
+        <div id="outline-container-org3f5bbb4" class="outline-3">
+          <h3 id="org3f5bbb4">
+          <span class="section-number-3">7.8</span>Using proper
+          datastructure</h3>
+          <div class="outline-text-3" id="text-7-8">
+            <ul class="org-ul">
+              <li>
+              <code>String</code>in haskell is actually a 
+              <code>List</code>of 
+              <code>Char</code>
+              <ul class="org-ul">
+                <li>
+                <code>List</code>as in 
+                <code>Linked-lists</code></li>
+              </ul></li>
+              <li>
+              <code>ByteString</code>so you can do 
+              <code>splicing</code>like 
+              <code>GO</code>. 
+              <ul class="org-ul">
+                <li>implemented in low level 
+                <code>C</code></li>
+              </ul></li>
+              <li>Handroll several components to avoid overhead
+              like the parsing library</li>
+            </ul>
+          </div>
+        </div>
+        <div id="outline-container-orgef5e4e5" class="outline-3">
+          <h3 id="orgef5e4e5">
+          <span class="section-number-3">7.9</span>ByteString
+          splicing</h3>
+          <div class="outline-text-3" id="text-7-9">
+            <p>Everything in haskell by default is immutable so
+            multiple threads can read it at the same time with no
+            issues.</p>
+            <p>Updates are done with compare and swap.</p>
+            <div class="figure">
+              <p>
+                <img src="ByteString_splicing/2020-08-20_15-39-39_screenshot.png"
+                alt="2020-08-20_15-39-39_screenshot.png" />
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="postamble" class="status">
+      <p class="author">Author: John Doe</p>
+      <p class="date">Created: 2020-08-20 Thu 15:49</p>
+    </div>
+  </body>
 </html>

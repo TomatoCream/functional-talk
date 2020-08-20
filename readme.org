@@ -2,86 +2,114 @@
 #+LATEX_HEADER: \usepackage[margin=1cm]{geometry}
 #+OPTIONS: reveal_mathjax:t
 #+TITLE: Functional Programming: Real World Performance, Nix and Warp Server
-* Who am I? Introduction to myself
-  - Follow me on github!
-    [[https://github.com/TomatoCream]]
-  - Linux user for 5 years now
-    - Ubuntu
-    - Proxmox
-    - ArchLinux
-    - Centos (server management)
-** My interests
-   - AI, ML
-   - Functional programming and abstraction (what the hell is so good about this?)
-   - philosophy
-     - occam's razor
+* How Familiar is everyone with FP
+** Disclaimer, not an expert
+- Logical fallacies will be used, not too fond of this but ¯\_(ツ)_/¯.
+- Linux user for 7 years now
+  - Ubuntu
+  - Proxmox
+  - ArchLinux
+  - Centos (server management)
+** Choose some project
+https://github.com/search?q=filename%3Ashell.nix&type=Code
+** Goals
+- Functional Programming *Principles* (not only languages)
+- Academic mental exercise (hope not too boring):D
+  - not nessasarily useful
+  - exposure to a *what if?* world
+- No free lunch theorem
+  - PS: you get some free snacks with FP
+- confidence
 ** For whom is this talk for?
-   - Linux users! Sorry windows users
-     - But not really (departs away from a unix way of doing things)
-   - Show you what functional programming can do?
-     - purity?
-     - referential transparency?
-   - State management
-   - DevOps
-   - Images, Docker, VM, Clusters
-   - I will give you a feel of ~Nix~ not the nitty gritty details
-* The big problem, package manager wars!
-  - What is the best package manager?
-  - Has anyone ever used some sort of package management system?
+- A rare case where FP's abilities can be shown
+- State management
+- DevOps
+- Images, Docker, VM, Clusters
+- give you a feel of ~Nix~
 ** slant.co's opinions
    [[file:./images/screenshot-09.png]]
+** Really?
+https://edolstra.github.io/pubs/nspfssd-lisa2004-final.pdf
+https://edolstra.github.io/pubs/nixos-icfp2008-submitted.pdf
+https://edolstra.github.io/pubs/phd-thesis.pdf
+[[file:./images/screenshot-12.png]]
+
+[[file:./images/screenshot-13.png]]
+
+[[file:./images/screenshot-14.png]]
+** Functional Programming Primer
+- purity no side effects
+  - whats the point of a program if it cannot change any value?
+- everything is immutable
+  - $x = 1; x = 2$
+- lazy
+- memoize everything
+- extreme composability
+- keep as much information in the program as possible
+  - i.e. not a lot of reduce operations
+* What is the problem?
+- Modern smart phones vs old phones
+- What OS has everyone used?
+  - windows
+  - ubuntu/mac apt-get brew
+** What is the problem?
+- multiple versions
+- mutability
+  - mysql-python
+- not accurate dependency graph
+- dependency hell
 ** Some modern day package management systems
-   | Package manager | Distributions  |
-   |-----------------+----------------|
-   | apt, apt-get    | Debian, Ubuntu |
-   | rpm, yum        | Redhat, Centos |
-   | pacman          | ArchLinux      |
-   | brew            | MacOS          |
+| Package manager | Distributions  |
+|-----------------+----------------|
+| apt, apt-get    | Debian, Ubuntu |
+| rpm, yum        | Redhat, Centos |
+| pacman          | ArchLinux      |
+| brew            | MacOS          |
 ** What about sub ecosystems?
-   | Package manager             | ???            |
-   |-----------------------------+----------------|
-   | pip, virtualenv, pipenv     | Python2,3(???) |
-   | npm, yarn                   | Nodejs         |
-   | cabal, stack, hackage       | Haskell :)     |
-   | go?                         | go?            |
-   | brew                        | MacOS          |
-   | use-package, vim, fish, zsh | ...            |
+| Package manager             | ???            |
+|-----------------------------+----------------|
+| pip, virtualenv, pipenv     | Python2,3(???) |
+| npm, yarn                   | Nodejs         |
+| cabal, stack, hackage       | Haskell :)     |
+| go?                         | go?            |
+| brew                        | MacOS          |
+| use-package, vim, fish, zsh | ...            |
 ** How to make a package manager?
-   - What are the basic parts that we need?
+- What are the basic parts that we need?
 ** How to make a package manager?
-   | build dependencies   | What do I need to build the program? |
-   | runtime dependencies | What ~.so~ shared objects do I need? |
-   | configurations       | What in ~/etc/...~ config files      |
-   - essentially think of it as a graph, whenever we upgrade or install a package,
-     we are mutating a node on this graph to point to something else.
+| build dependencies   | What do I need to build the program? |
+| runtime dependencies | What ~.so~ shared objects do I need? |
+| configurations       | What in ~/etc/...~ config files      |
+- essentially think of it as a graph, whenever we upgrade or install a package,
+  we are mutating a node on this graph to point to something else.
 *** real senario
-    #+BEGIN_SRC sh
-      pkgname=pacman
-      pkgver=5.1.0
-      _pkgver=1.0.0
-      pkgrel=2
-      pkgdesc="A library-based package manager with dependency support"
-      arch=('i686' 'x86_64')
-      url="http://www.archlinux.org/pacman/"
-      license=('GPL')
-      groups=('base' 'base-devel')
-      depends=('bash>=4.2.042-2' 'glibc>=2.17-2' 'libarchive>=3.1.2' 'curl>=7.39.0'
-               'gpgme' 'archlinux-keyring' 'manjaro-keyring' 'pacman-mirrors>=4.1.0')
-      checkdepends=('python2' 'fakechroot')
-      makedepends=('asciidoc' 'pacman>=5.1')
-      optdepends=('haveged: for pacman-init.service')
-      provides=('pacman-contrib' 'pacman-init')
-      conflicts=('pacman-contrib' 'pacman-init')
-      replaces=('pacman-contrib' 'pacman-init')
-      backup=(etc/pacman.conf etc/makepkg.conf)
-      install=pacman.install
-      options=('strip' 'debug')
-    #+END_SRC
+#+BEGIN_SRC sh
+  pkgname=pacman
+  pkgver=5.1.0
+  _pkgver=1.0.0
+  pkgrel=2
+  pkgdesc="A library-based package manager with dependency support"
+  arch=('i686' 'x86_64')
+  url="http://www.archlinux.org/pacman/"
+  license=('GPL')
+  groups=('base' 'base-devel')
+  depends=('bash>=4.2.042-2' 'glibc>=2.17-2' 'libarchive>=3.1.2' 'curl>=7.39.0'
+           'gpgme' 'archlinux-keyring' 'manjaro-keyring' 'pacman-mirrors>=4.1.0')
+  checkdepends=('python2' 'fakechroot')
+  makedepends=('asciidoc' 'pacman>=5.1')
+  optdepends=('haveged: for pacman-init.service')
+  provides=('pacman-contrib' 'pacman-init')
+  conflicts=('pacman-contrib' 'pacman-init')
+  replaces=('pacman-contrib' 'pacman-init')
+  backup=(etc/pacman.conf etc/makepkg.conf)
+  install=pacman.install
+  options=('strip' 'debug')
+#+END_SRC
 ** Problems with modern package management
-   https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian
-   [[file:./images/screenshot-01.png]]
-** TODO Why imperative is bad? What is so imperative about installing packages?
-   referential transparency
+ https://wiki.debian.org/DontBreakDebian#Don.27t_make_a_FrankenDebian
+ [[file:./images/screenshot-01.png]]
+** Why imperative is bad? What is so imperative about installing packages?
+Mutation
 ** Are you familiar with ~DEPENDENCY HELL~?
    - https://www.reddit.com/r/ProgrammerHumor/comments/75txp4/nodejs_dependency_hell_visualized_for_the_first/?utm_source=share&utm_medium=web2x
    - https://github.com/vector-im/riot-web/network/dependencies
@@ -105,7 +133,7 @@
    - can be fixed but kinda troublesome.
    [[file:./images/screenshot-02.png]]
 ** Whats bad about imperative summary?
-   - No referential transparency
+   - No Variability
      - cannot point to older versions of the same thing
    - Dependency hell
      - conflicting dependencies
@@ -123,30 +151,32 @@
    - [[file:./images/screenshot-03.png]]
 ** Introducing Nix Package Management
    - solves all of the problems above
-     - No referential transparency
+     - Can point to different versions of the same thing
        - cannot point to older versions of the same thing
      - Dependency hell
      - Not atomic upgrades
        - unknown state if break half way
 ** Main mechanism
-   - referential transparency
-     - install everything in path ~/nix/store/{hash}-name~
-     - via ~symlinking~
+- install everything in path ~/nix/store/{hash}-name~
+- via ~symlinking~
 ** What you get for free with this mechanism?
-   - no ~sudo~
-   - easy revert and roll back
-   - select specific version
-   - 2 different version can run at the same time
-   - same *development* environment as the *runtime* environment!
-     - nix-shell
+- no ~sudo~
+- easy revert and roll back
+- select specific version
+- 2 different version can run at the same time
+- same *development* environment as the *runtime* environment!
+  - nix-shell
 *** no ~sudo~, where is my ~sudo~?
-    - linux was developed as a ~time sharing~ system
-    - many users were expected to share a single computer.
-    - thus to manage conflicts, a ~super user~, ~root~ was required to
-      install and manage packages
-      #+BEGIN_SRC sh
-        nix-env -iA nixos.figlet
-      #+END_SRC
+- linux was developed as a ~time sharing~ system
+- many users were expected to share a single computer.
+- thus to manage conflicts, a ~super user~, ~root~ was required to
+  install and manage packages
+#+BEGIN_SRC sh :output verbatim
+nix-env -iA nixos.figlet
+#+END_SRC
+
+#+RESULTS:
+
 *** easy revert, rollback
     #+BEGIN_SRC sh
       figlet "I am here!"
@@ -289,5 +319,47 @@
     - https://nixos.org/~eelco/pubs/nixos-jfp-final.pdf
   - Hydra - NixOS
     - https://nixos.org/~eelco/pubs/hydra-scp-submitted.pdf
+* Part 2 Warp optimization
+#+DOWNLOADED: screenshot @ 2020-08-20 14:51:11
+[[file:Part_2_Warp_optimization/2020-08-20_14-51-11_screenshot.png]]
 
+https://www.aosabook.org/en/posa/warp.html
+** 2013 Results
 
+#+DOWNLOADED: screenshot @ 2020-08-20 14:50:23
+[[file:Part_2_warp/2020-08-20_14-50-23_screenshot.png]]
+** Overall Architecture
+
+#+DOWNLOADED: screenshot @ 2020-08-20 15:46:34
+[[file:Part_2_Warp_optimization/2020-08-20_15-46-34_screenshot.png]]
+** Type and life cycle
+#+BEGIN_SRC haskell
+type Application = Request -> ResourceT IO Response
+#+END_SRC
+
+#+DOWNLOADED: screenshot @ 2020-08-20 15:47:23
+[[file:Part_2_Warp_optimization/2020-08-20_15-47-23_screenshot.png]]
+** Threads
+user threads
+** As little syscalls as possible
+- use strace to check what nginx was doing
+- found ~accept4~
+** Profiling
+- the date string format is taking up most of the cpu time
+- so they made a cache for that
+- btw haskell by default memoised every thing
+** Avoiding locks
+they used compare and swap instead
+
+** Using proper datastructure
+- ~String~ in haskell is actually a ~List~ of ~Char~
+  - ~List~ as in ~Linked-lists~
+- ~ByteString~ so you can do ~splicing~ like ~GO~.
+  - implemented in low level ~C~
+- Handroll several components to avoid overhead like the parsing library
+** ByteString splicing
+Everything in haskell by default is immutable so multiple threads can read it at the same time with no issues.
+
+Updates are done with compare and swap.
+#+DOWNLOADED: screenshot @ 2020-08-20 15:39:39
+[[file:ByteString_splicing/2020-08-20_15-39-39_screenshot.png]]
